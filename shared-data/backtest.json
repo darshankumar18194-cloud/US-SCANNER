@@ -1,0 +1,484 @@
+{
+  "schema": 1,
+  "generated_at": "2026-11-10T13:05:16Z",
+  "symbols_done": 217,
+  "symbols_skipped": 11,
+  "step": 4,
+  "start_bars": 1000,
+  "shards": 8,
+  "first_entry": "2025-07-09 15:30",
+  "last_entry": "2026-11-09 13:30",
+  "setups": 3988,
+  "rules": {
+    "levels": {
+      "n": 3949,
+      "open": 39,
+      "avg_r": -0.021,
+      "se": 0.02,
+      "win": 0.488,
+      "sl": 2008,
+      "be": 1092,
+      "tp2": 769,
+      "expired": 80
+    },
+    "fixed": {
+      "n": 3929,
+      "open": 59,
+      "avg_r": -0.035,
+      "se": 0.021,
+      "win": 0.386,
+      "sl": 2373,
+      "be": 652,
+      "tp2": 697,
+      "expired": 207
+    },
+    "atr": {
+      "n": 5401,
+      "open": 49,
+      "avg_r": -0.057,
+      "se": 0.018,
+      "win": 0.376,
+      "sl": 3368,
+      "be": 972,
+      "tp2": 999,
+      "expired": 62
+    }
+  },
+  "shuffled": {
+    "levels": {
+      "n": 3493,
+      "open": 28,
+      "avg_r": -0.05,
+      "se": 0.021,
+      "win": 0.479,
+      "sl": 1809,
+      "be": 1021,
+      "tp2": 608,
+      "expired": 55
+    },
+    "fixed": {
+      "n": 3490,
+      "open": 31,
+      "avg_r": -0.074,
+      "se": 0.022,
+      "win": 0.365,
+      "sl": 2181,
+      "be": 541,
+      "tp2": 626,
+      "expired": 142
+    },
+    "atr": {
+      "n": 4441,
+      "open": 21,
+      "avg_r": -0.074,
+      "se": 0.02,
+      "win": 0.365,
+      "sl": 2818,
+      "be": 753,
+      "tp2": 840,
+      "expired": 30
+    }
+  },
+  "edge": {
+    "levels": {
+      "diff": 0.029,
+      "se": 0.029,
+      "z": 1.0
+    },
+    "fixed": {
+      "diff": 0.039,
+      "se": 0.03,
+      "z": 1.3
+    },
+    "atr": {
+      "diff": 0.017,
+      "se": 0.027,
+      "z": 0.6
+    }
+  },
+  "by_side": {
+    "levels": {
+      "long": {
+        "n": 2313,
+        "open": 35,
+        "avg_r": 0.002,
+        "se": 0.025,
+        "win": 0.51,
+        "sl": 1124,
+        "be": 656,
+        "tp2": 494,
+        "expired": 39
+      },
+      "short": {
+        "n": 1636,
+        "open": 4,
+        "avg_r": -0.054,
+        "se": 0.033,
+        "win": 0.458,
+        "sl": 884,
+        "be": 436,
+        "tp2": 275,
+        "expired": 41
+      }
+    },
+    "fixed": {
+      "long": {
+        "n": 2298,
+        "open": 50,
+        "avg_r": 0.007,
+        "se": 0.027,
+        "win": 0.398,
+        "sl": 1353,
+        "be": 374,
+        "tp2": 439,
+        "expired": 132
+      },
+      "short": {
+        "n": 1631,
+        "open": 9,
+        "avg_r": -0.094,
+        "se": 0.031,
+        "win": 0.369,
+        "sl": 1020,
+        "be": 278,
+        "tp2": 258,
+        "expired": 75
+      }
+    },
+    "atr": {
+      "long": {
+        "n": 2549,
+        "open": 42,
+        "avg_r": 0.039,
+        "se": 0.027,
+        "win": 0.404,
+        "sl": 1518,
+        "be": 456,
+        "tp2": 551,
+        "expired": 24
+      },
+      "short": {
+        "n": 2852,
+        "open": 7,
+        "avg_r": -0.143,
+        "se": 0.023,
+        "win": 0.351,
+        "sl": 1850,
+        "be": 516,
+        "tp2": 448,
+        "expired": 38
+      }
+    }
+  },
+  "levels_by_rr": {
+    "below 1": {
+      "n": 2200,
+      "open": 20,
+      "avg_r": -0.077,
+      "se": 0.019,
+      "win": 0.585,
+      "sl": 902,
+      "be": 812,
+      "tp2": 461,
+      "expired": 25
+    },
+    "1 to 1.5": {
+      "n": 673,
+      "open": 10,
+      "avg_r": 0.022,
+      "se": 0.047,
+      "win": 0.462,
+      "sl": 361,
+      "be": 164,
+      "tp2": 139,
+      "expired": 9
+    },
+    "1.5 or more": {
+      "n": 1076,
+      "open": 9,
+      "avg_r": 0.067,
+      "se": 0.056,
+      "win": 0.308,
+      "sl": 745,
+      "be": 116,
+      "tp2": 169,
+      "expired": 46
+    }
+  },
+  "levels_by_sl_grade": {
+    "A": {
+      "n": 739,
+      "open": 9,
+      "avg_r": -0.074,
+      "se": 0.044,
+      "win": 0.484,
+      "sl": 380,
+      "be": 212,
+      "tp2": 143,
+      "expired": 4
+    },
+    "B": {
+      "n": 515,
+      "open": 5,
+      "avg_r": -0.05,
+      "se": 0.056,
+      "win": 0.466,
+      "sl": 274,
+      "be": 122,
+      "tp2": 111,
+      "expired": 8
+    },
+    "C": {
+      "n": 851,
+      "open": 7,
+      "avg_r": -0.014,
+      "se": 0.041,
+      "win": 0.515,
+      "sl": 411,
+      "be": 258,
+      "tp2": 166,
+      "expired": 16
+    },
+    "D": {
+      "n": 1844,
+      "open": 18,
+      "avg_r": 0.005,
+      "se": 0.031,
+      "win": 0.484,
+      "sl": 943,
+      "be": 500,
+      "tp2": 349,
+      "expired": 52
+    }
+  },
+  "levels_by_pattern": {
+    "Turtle Soup": {
+      "n": 1801,
+      "open": 24,
+      "avg_r": 0.052,
+      "se": 0.032,
+      "win": 0.509,
+      "sl": 880,
+      "be": 517,
+      "tp2": 367,
+      "expired": 37
+    },
+    "Bullish Engulfing": {
+      "n": 402,
+      "open": 2,
+      "avg_r": -0.104,
+      "se": 0.054,
+      "win": 0.49,
+      "sl": 203,
+      "be": 119,
+      "tp2": 74,
+      "expired": 6
+    },
+    "Bearish Engulfing": {
+      "n": 347,
+      "open": 0,
+      "avg_r": -0.104,
+      "se": 0.07,
+      "win": 0.435,
+      "sl": 196,
+      "be": 90,
+      "tp2": 57,
+      "expired": 4
+    },
+    "Hammer": {
+      "n": 294,
+      "open": 4,
+      "avg_r": 0.154,
+      "se": 0.07,
+      "win": 0.578,
+      "sl": 123,
+      "be": 88,
+      "tp2": 76,
+      "expired": 7
+    },
+    "Shooting Star": {
+      "n": 192,
+      "open": 1,
+      "avg_r": -0.077,
+      "se": 0.092,
+      "win": 0.443,
+      "sl": 107,
+      "be": 46,
+      "tp2": 32,
+      "expired": 7
+    },
+    "Piercing Line": {
+      "n": 162,
+      "open": 0,
+      "avg_r": -0.112,
+      "se": 0.084,
+      "win": 0.494,
+      "sl": 81,
+      "be": 49,
+      "tp2": 29,
+      "expired": 3
+    },
+    "Undercut & Rally": {
+      "n": 121,
+      "open": 3,
+      "avg_r": -0.049,
+      "se": 0.107,
+      "win": 0.479,
+      "sl": 63,
+      "be": 33,
+      "tp2": 24,
+      "expired": 1
+    },
+    "Dark Cloud Cover": {
+      "n": 116,
+      "open": 1,
+      "avg_r": -0.187,
+      "se": 0.117,
+      "win": 0.379,
+      "sl": 72,
+      "be": 22,
+      "tp2": 19,
+      "expired": 3
+    },
+    "Three Outside Up": {
+      "n": 98,
+      "open": 0,
+      "avg_r": -0.282,
+      "se": 0.102,
+      "win": 0.408,
+      "sl": 57,
+      "be": 25,
+      "tp2": 15,
+      "expired": 1
+    },
+    "Three Outside Down": {
+      "n": 90,
+      "open": 1,
+      "avg_r": -0.237,
+      "se": 0.117,
+      "win": 0.4,
+      "sl": 53,
+      "be": 21,
+      "tp2": 11,
+      "expired": 5
+    },
+    "Dragonfly Doji": {
+      "n": 62,
+      "open": 0,
+      "avg_r": 0.105,
+      "se": 0.179,
+      "win": 0.484,
+      "sl": 31,
+      "be": 16,
+      "tp2": 14,
+      "expired": 1
+    },
+    "Inverted Hammer": {
+      "n": 41,
+      "open": 2,
+      "avg_r": 0.054,
+      "se": 0.184,
+      "win": 0.512,
+      "sl": 20,
+      "be": 9,
+      "tp2": 12,
+      "expired": 0
+    },
+    "Three Inside Up": {
+      "n": 41,
+      "open": 0,
+      "avg_r": -0.225,
+      "se": 0.164,
+      "win": 0.415,
+      "sl": 24,
+      "be": 7,
+      "tp2": 9,
+      "expired": 1
+    },
+    "Hanging Man": {
+      "n": 32,
+      "open": 0,
+      "avg_r": -0.334,
+      "se": 0.147,
+      "win": 0.438,
+      "sl": 18,
+      "be": 10,
+      "tp2": 4,
+      "expired": 0
+    },
+    "Bullish Harami Cross": {
+      "n": 29,
+      "open": 1,
+      "avg_r": 0.163,
+      "se": 0.215,
+      "win": 0.586,
+      "sl": 12,
+      "be": 9,
+      "tp2": 7,
+      "expired": 1
+    },
+    "Gravestone Doji": {
+      "n": 29,
+      "open": 0,
+      "avg_r": -0.158,
+      "se": 0.167,
+      "win": 0.517,
+      "sl": 14,
+      "be": 9,
+      "tp2": 5,
+      "expired": 1
+    },
+    "Morning Star": {
+      "n": 20,
+      "open": 0,
+      "avg_r": -0.426,
+      "se": 0.168,
+      "win": 0.4,
+      "sl": 12,
+      "be": 7,
+      "tp2": 1,
+      "expired": 0
+    },
+    "Evening Star": {
+      "n": 16,
+      "open": 0,
+      "avg_r": 0.016,
+      "se": 0.277,
+      "win": 0.5,
+      "sl": 8,
+      "be": 2,
+      "tp2": 5,
+      "expired": 1
+    },
+    "Bearish Harami Cross": {
+      "n": 16,
+      "open": 0,
+      "avg_r": -0.36,
+      "se": 0.232,
+      "win": 0.375,
+      "sl": 10,
+      "be": 4,
+      "tp2": 1,
+      "expired": 1
+    },
+    "Three Inside Down": {
+      "n": 13,
+      "open": 0,
+      "avg_r": -0.707,
+      "se": 0.155,
+      "win": 0.231,
+      "sl": 10,
+      "be": 3,
+      "tp2": 0,
+      "expired": 0
+    }
+  },
+  "limits": [
+    "about 2 years of hourly history: one market regime",
+    "today's symbol list (survivorship)",
+    "no costs or slippage",
+    "overlapping setups are correlated: the error margins are optimistic",
+    "a plan is made up to `step`-1 candles after its entry candle",
+    "the baseline is ONE random reordering of each symbol: it shows what no-structure prices give, not a full distribution"
+  ]
+}
