@@ -27,6 +27,7 @@ import numpy as np
 import config
 import levels as levels_mod
 import market_data
+import plans as plans_mod
 import signals
 import smc_engine as eng
 import symbols as sym
@@ -76,7 +77,8 @@ def base_record(row: sym.SymbolRow) -> Dict[str, Any]:
             "active": row.active, "notes": row.notes, "tradingview_url": tradingview_url(row.yahoo)}
 
 
-def analyse_frame(row: sym.SymbolRow, fetch: market_data.Fetch, scanned_at: str) -> Dict[str, Any]:
+def analyse_frame(row: sym.SymbolRow, fetch: market_data.Fetch, scanned_at: str,
+                  open_plans: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
     """Turn closed candles into one stocks.json record. Raises on a genuine bug (caller catches)."""
     df = fetch.df
     n = len(df)
@@ -114,11 +116,19 @@ def analyse_frame(row: sym.SymbolRow, fetch: market_data.Fetch, scanned_at: str)
         except Exception as e:                                      # noqa: BLE001 - a level bug must never lose the scan
             log.warning(f"{row.symbol}: levels failed - {type(e).__name__}: {e}")
             rec["levels"], rec["levels_meta"] = [], {"error": f"{type(e).__name__}: {e}"[:120]}
+    if getattr(config, "PLANS_ON", False):                          # trade plans (plans.py); scan.main moves these out of the record
+        try:
+            rec["plan_eval"] = plans_mod.evaluate_open(df, open_plans or [])
+            rec["plan_new"] = plans_mod.make_plans(row.symbol, df, smc, sigs, ctx.get("atr"), price, rec.get("levels") or [], scanned_at)
+        except Exception as e:                                      # noqa: BLE001 - a plan bug must never lose the scan
+            log.warning(f"{row.symbol}: plans failed - {type(e).__name__}: {e}")
+            rec["plan_eval"], rec["plan_new"] = {}, []
     return rec
 
 
 def scan_symbol(row: sym.SymbolRow, previous: Optional[Dict[str, Any]], scanned_at: str,
-                history_fn=None, now_utc: Optional[datetime] = None) -> Dict[str, Any]:
+                history_fn=None, now_utc: Optional[datetime] = None,
+                open_plans: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
     """Download + analyse one symbol. Never raises. Failures keep the last good analysis and mark it STALE."""
     kw: Dict[str, Any] = {}
     if history_fn is not None:
@@ -129,7 +139,7 @@ def scan_symbol(row: sym.SymbolRow, previous: Optional[Dict[str, Any]], scanned_
     try:
         fetch = market_data.fetch_history(row.yahoo, **kw)
         if fetch.status == "OK":
-            rec = analyse_frame(row, fetch, scanned_at)
+            rec = analyse_frame(row, fetch, scanned_at, open_plans)
             if rec["scanner_status"] == "OK":
                 return rec
             status, err = rec["scanner_status"], rec.get("scan_error", "")
@@ -155,7 +165,8 @@ def inactive_record(row: sym.SymbolRow) -> Dict[str, Any]:
 
 
 def run(rows: List[sym.SymbolRow], previous: Dict[str, Dict[str, Any]], only: Optional[set], workers: int,
-        history_fn=None, now_utc: Optional[datetime] = None, limit: int = 0) -> Dict[str, Dict[str, Any]]:
+        history_fn=None, now_utc: Optional[datetime] = None, limit: int = 0,
+        open_plans: Optional[Dict[str, List[Dict[str, Any]]]] = None) -> Dict[str, Dict[str, Any]]:
     scanned_at = (now_utc or datetime.now(timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
     targets = [r for r in rows if r.active and (only is None or r.symbol in only)]
     if limit > 0:
@@ -164,7 +175,8 @@ def run(rows: List[sym.SymbolRow], previous: Dict[str, Dict[str, Any]], only: Op
     t0 = time.time()
     done = 0
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
-        futs = {pool.submit(scan_symbol, r, previous.get(r.symbol), scanned_at, history_fn, now_utc): r for r in targets}
+        futs = {pool.submit(scan_symbol, r, previous.get(r.symbol), scanned_at, history_fn, now_utc,
+                            (open_plans or {}).get(r.symbol)): r for r in targets}
         for fut in as_completed(futs):
             r = futs[fut]
             try:
@@ -243,10 +255,29 @@ def main(argv=None) -> int:
                     return 2
             log.info(f"{now_market():%Y-%m-%d %H:%M %Z} | market open: {is_market_open()} | "
                      f"csv rows: {len(rows)} | active: {sum(r.active for r in rows)}")
+            plan_store = None
+            if getattr(config, "PLANS_ON", False):
+                try:
+                    plan_store = plans_mod.load()
+                except Exception as e:                              # noqa: BLE001 - never overwrite a plans file we cannot read
+                    log.error(f"plans.json unreadable ({type(e).__name__}: {e}) - plans are skipped this run and the file is left alone")
             t0 = time.time()
-            results = run(rows, previous, only, args.workers, limit=args.limit)
+            results = run(rows, previous, only, args.workers, limit=args.limit,
+                          open_plans=plans_mod.open_by_symbol(plan_store) if plan_store is not None else None)
+            new_plans: List[Dict[str, Any]] = []
+            evals: Dict[str, Dict[str, Any]] = {}
+            for rec in results.values():                            # plan data goes to plans.json, not into stocks.json
+                new_plans += rec.pop("plan_new", [])
+                evals.update(rec.pop("plan_eval", {}))
             out = assemble(rows, results, previous, problems)
             save_store(out["meta"], out["stocks"], pretty=args.pretty)
+            if plan_store is not None:
+                before = {p["id"] for p in plan_store["plans"]}
+                plans_mod.merge(plan_store, new_plans, evals, out["meta"]["generated_at"])
+                plans_mod.save(plan_store)
+                fresh = sum(1 for p in plan_store["plans"] if p["id"] not in before)
+                log.info(f"Plans: {fresh} new, {sum(p['status'] in plans_mod.OPEN_STATES for p in plan_store['plans'])} open, "
+                         f"{len(plan_store['plans'])} kept")
             counts = out["meta"]["counts"]
             log.info(f"Done in {time.time() - t0:.0f}s | " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
             top = sorted((s for s in out["stocks"] if s["scanner_status"] == "OK"),

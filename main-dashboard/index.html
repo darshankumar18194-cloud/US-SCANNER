@@ -27,6 +27,8 @@
 </header>
 
 <section class="stats" id="stats" aria-label="Scan summary"></section>
+<section id="planCompare"></section>
+<section id="backtestCard"></section>
 
 <div class="sec"><h2>Signals</h2></div>
 
@@ -238,6 +240,19 @@ const patCols = dir => [
   {k:'price', t:'Price', num:true, get: r => r.s.price, cell: r => priceCell(r.s)},
   {k:'strip', t:'Last 14 candles', sort:false, cell: r => strip(r.s, r.best)}
 ];
+let PLAN_LIST = [], PLANS = {}, BACKTEST = null;
+const isMainRule = p => !p.variant || p.variant === 'levels';
+const fmtR = v => (v > 0 ? '+' : '') + Number(v).toFixed(1) + 'R';
+const fmtR2 = v => (v > 0 ? '+' : '') + Number(v).toFixed(2) + 'R';   // the backtest differences are small: two decimals
+const PLAN_STATE = {open:'open', tp1:'TP1 hit, stop at entry', sl:'stopped out', be:'TP1, then stopped at entry', tp2:'TP2 reached', expired:'expired'};
+function planOf(r, dir){ return PLANS[r.s.symbol + '|' + (dir === 'bull' ? 'long' : 'short') + '|' + r.best.name + '|' + r.best.time] || null; }
+function planCell(r, dir){
+  const p = planOf(r, dir);
+  if (!p) return '<span class="muted small" title="No plan: it needs a support/resistance level at least 0.5 ATR away on BOTH sides of the entry, or the setup was confirmed before plans were recorded.">–</span>';
+  const good = p.rr1 >= 1.5, result = p.r != null ? fmtR(p.r) : (p.r_live != null ? 'now ' + fmtR(p.r_live) : '');
+  return '<span class="small" title="Frozen when the setup was first seen. SL = nearest level on the wrong side (min. 0.5 ATR away) minus 0.2 ATR, never inside the pattern. TP1 / TP2 = the next two levels. After TP1 the stop moves to entry.">SL $' + money(p.sl) + ' &middot; TP1 $' + money(p.tp1) + (p.tp2 != null ? ' &middot; TP2 $' + money(p.tp2) : '') + '</span><br>' +
+    '<span class="small" style="color:var(--' + (good ? (dir === 'bull' ? 'bull' : 'bear') : 'muted') + ')">RR ' + Number(p.rr1).toFixed(1) + (good ? '' : ' (low)') + '</span> <span class="muted small">&middot; ' + esc(PLAN_STATE[p.status] || p.status) + (result ? ' &middot; ' + result : '') + '</span>';
+}
 const comboCols = side => { const low = side === 'low', dir = low ? 'bull' : 'bear'; return [
   {k:'sym', t:'Symbol', get: r => r.s.symbol, cell: r => symCell(r.s)},
   {k:'sig', t: low ? 'Low signal' : 'High signal', get: r => r.sig, cell: r => sigPill(r.sig)},
@@ -245,6 +260,7 @@ const comboCols = side => { const low = side === 'low', dir = low ? 'bull' : 'be
   {k:'pat', t:'Pattern', get: r => r.best.name, cell: r => patCell(r.best, r.n - 1)},
   {k:'status', t:'Status', get: r => r.status, cell: r => r.status === 'confirmed' ? '<span class="pill ' + dir + '">Confirmed</span>' + (r.confTime ? '<br><span class="muted small" title="The candle that closed beyond the pattern and confirmed it">' + esc(fmtTime(r.confTime)) + ', ' + agoText(r.confSince) + '</span><br><span class="small" title="Closing price of the confirming candle">at $' + money(r.confPrice) + '</span>' : '') : '<span class="pill neutral" title="Pattern formed, no later candle has closed beyond it yet">Pending</span>'},
   {k:'stop', t:'Stop ref', num:true, get: r => r.stop, cell: r => '$' + money(r.stop)},
+  {k:'plan', t:'Trade plan', get: r => (planOf(r, dir) || {}).rr1 ?? -1, cell: r => planCell(r, dir)},
   {k:'dist', t:'From level', num:true, get: r => r.dist, cell: r => r.dist.toFixed(2) + ' ATR<br><span class="muted small">' + (r.dist < 0.05 ? 'right at the ' : (r.above ? 'beyond the ' : 'inside the ')) + (low ? 'low' : 'high') + '</span>'},
   {k:'rank', t:'SMC rank', num:true, get: r => r.rank ?? -1, cell: r => '<b style="color:var(--' + (low ? 'bull' : 'bear') + ')">' + (r.rank != null ? Number(r.rank).toFixed(1) : '–') + '</b>'},
   {k:'score', t:'Pattern score', get: r => r.score, cell: r => confCell(r.score, dir)},
@@ -375,6 +391,61 @@ function renderHeader(){
     if (hrs > 30) { const b = $('#staleBanner'); b.textContent = 'This data is ' + Math.round(hrs) + ' hours old. The scheduled run may have stopped. Check the Actions tab on GitHub.'; b.classList.remove('hidden'); }
   }
 }
+const RULES = [
+  ['levels', 'Levels', 'SL and TP1 / TP2 at the next support / resistance (the rule shown in the table above)'],
+  ['fixed', 'Level stop, fixed targets', 'the same stop, but TP1 = 1.5R and TP2 = 3R: do level-based targets add anything?'],
+  ['atr', 'No levels', 'SL 1.5 ATR beyond entry (or the pattern extreme), TP1 = 1.5R, TP2 = 3R: do levels add anything at all?']];
+function planCompareHtml(){
+  if (!PLAN_LIST.length) return '';
+  const rows = RULES.map(([key, name, tip]) => {
+    const all = PLAN_LIST.filter(p => (p.variant || 'levels') === key), fin = all.filter(p => p.r != null);
+    const n = fin.length, avg = n ? fin.reduce((t, p) => t + p.r, 0) / n : null;
+    const sd = n > 1 ? Math.sqrt(fin.reduce((t, p) => t + (p.r - avg) ** 2, 0) / (n - 1)) : null;
+    const cnt = s => fin.filter(p => p.status === s).length;
+    return '<tr><td title="' + esc(tip) + '"><b>' + esc(name) + '</b></td><td class="num">' + (all.length - n) + '</td><td class="num">' + n + '</td>' +
+      '<td class="num"><b>' + (avg == null ? '–' : fmtR(avg)) + '</b>' + (sd == null ? '' : ' <span class="muted small">&plusmn; ' + (sd / Math.sqrt(n)).toFixed(1) + '</span>') + '</td>' +
+      '<td class="num">' + (n ? Math.round(100 * fin.filter(p => p.r > 0).length / n) + '%' : '–') + '</td>' +
+      '<td class="num">' + cnt('sl') + '</td><td class="num">' + cnt('be') + '</td><td class="num">' + cnt('tp2') + '</td><td class="num">' + cnt('expired') + '</td></tr>';
+  }).join('');
+  return '<div class="tcard" style="margin-bottom:18px"><div class="head"><h3>Which exit rule works? Same setups, three rules</h3></div>' +
+    '<div class="scroll"><table><thead><tr><th>Rule</th><th class="num">Open</th><th class="num">Finished</th><th class="num">Average R &plusmn; error</th><th class="num">Win rate</th><th class="num">Stopped</th><th class="num">TP1, then stop</th><th class="num">TP2</th><th class="num">Expired</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<p class="muted small" style="padding:8px 14px 12px">R = distance from entry to stop; half is sold at TP1, half at TP2 or the stop. The three rules trade exactly the same setups, so the rows are directly comparable. ' +
+    'Each average has an error margin (&plusmn;): with fewer than about 30 finished plans per rule it means little. <b>Do not compare the rows with each other:</b> the rules have different stop and target shapes, which changes the result even on pure noise, so a gap between rows does not show that levels help. The Backtest card below compares each rule with its own result on shuffled prices, which is the fair test.</p></div>';
+}
+function backtestHtml(b){
+  if (!b || !b.rules) return '';
+  const R = (x, f) => x == null ? '–' : (f === 'pct' ? Math.round(100 * x) + '%' : fmtR2(x));
+  const pm = x => x == null ? '' : ' <span class="muted small">&plusmn; ' + Number(x).toFixed(2) + '</span>';
+  const verdict = (e, n) => n < 30 ? '<span class="muted">too few setups</span>' : e.z == null ? '–' :
+    e.z >= 2 ? '<b style="color:var(--bull)">beats noise (' + e.z.toFixed(1) + '&times; the error)</b>' :
+    e.z <= -2 ? '<b style="color:var(--bear)">worse than noise (' + e.z.toFixed(1) + '&times;)</b>' :
+    '<span class="muted">not proven (' + (e.z > 0 ? '+' : '') + e.z.toFixed(1) + '&times; the error)</span>';
+  const rows = RULES.map(([k, name, tip]) => {
+    const r = b.rules[k], s = (b.shuffled || {})[k] || {}, e = (b.edge || {})[k] || {};
+    return '<tr><td title="' + esc(tip) + '"><b>' + esc(name) + '</b></td><td class="num">' + r.n + '</td><td class="num"><b>' + R(r.avg_r) + '</b>' + pm(r.se) + '</td><td class="num">' + R(r.win, 'pct') + '</td>' +
+      '<td class="num">' + R(s.avg_r) + pm(s.se) + '</td><td class="num"><b>' + (e.diff == null ? '–' : fmtR2(e.diff)) + '</b>' + pm(e.se) + '</td><td>' + verdict(e, r.n) + '</td></tr>';
+  }).join('');
+  const bucket = (title, obj) => '<tr><td colspan="7" class="muted small" style="padding-top:12px"><b>' + title + '</b> (Levels rule, real prices)</td></tr>' +
+    Object.entries(obj || {}).filter(([, x]) => x.n > 0).map(([k, x]) => '<tr><td class="muted">' + esc(k) + '</td><td class="num">' + x.n + '</td><td class="num">' + R(x.avg_r) + pm(x.se) + '</td><td class="num">' + R(x.win, 'pct') + '</td><td></td><td></td><td></td></tr>').join('');
+  return '<div class="tcard" style="margin-bottom:18px"><div class="head"><h3>Backtest: do the exit rules beat shuffled prices?</h3></div>' +
+    '<p class="muted small" style="padding:8px 14px 0">' + b.symbols_done + ' symbols, ' + b.setups + ' setups, entries from ' + esc((b.first_entry || '').slice(0, 10)) + ' to ' + esc((b.last_entry || '').slice(0, 10)) + ', replayed every ' + b.step + ' candles. Generated ' + esc((b.generated_at || '').slice(0, 10)) + '.</p>' +
+    '<div class="scroll"><table><thead><tr><th>Rule</th><th class="num">Setups</th><th class="num">Average R, real prices</th><th class="num">Win rate</th><th class="num">Average R, shuffled prices</th><th class="num">Edge (real &minus; shuffled)</th><th>Verdict</th></tr></thead><tbody>' + rows +
+    bucket('By reward-to-risk at TP1', b.levels_by_rr) + bucket('By grade of the stop level', b.levels_by_sl_grade) + '</tbody></table></div>' +
+    '<p class="muted small" style="padding:8px 14px 12px">Shuffled prices are the same candles in random order: same volatility, no real pattern, trend or support / resistance. A rule has an edge only if its real result beats its OWN shuffled result by clearly more than the error margin. ' +
+    'Limits: ' + (b.limits || []).map(esc).join('; ') + '.</p></div>';
+}
+function renderBacktest(){ $('#backtestCard').innerHTML = backtestHtml(BACKTEST); }
+function renderPlanCompare(){ $('#planCompare').innerHTML = planCompareHtml(); }
+function planStats(){
+  const main = PLAN_LIST.filter(isMainRule), done = main.filter(p => p.r != null), open = main.filter(p => p.r == null);
+  if (!main.length) return '<div class="stat"><b>0</b><span>trade plans yet (they start with the next scan)</span></div>';
+  const avg = a => a.length ? a.reduce((t, p) => t + p.r, 0) / a.length : null;
+  const cnt = s => done.filter(p => p.status === s).length;
+  const good = done.filter(p => p.rr1 >= 1.5), a = avg(done), g = avg(good);
+  return '<div class="stat"><b>' + open.length + '</b><span>trade plans open</span></div>' +
+    '<div class="stat" title="Results in R (1R = entry to stop, half sold at TP1, half at TP2 or the stop). Only finished plans count."><b>' + (a == null ? '–' : fmtR(a)) + '</b><span>average over ' + done.length + ' finished plans (TP2 ' + cnt('tp2') + ', TP1 then stop ' + cnt('be') + ', stopped ' + cnt('sl') + ', expired ' + cnt('expired') + ')</span></div>' +
+    '<div class="stat" title="Plans whose reward to TP1 is at least 1.5 times the risk (the book&#39;s minimum)"><b>' + (g == null ? '–' : fmtR(g)) + '</b><span>average when RR is 1.5 or more (' + good.length + ' finished)</span></div>';
+}
 function renderStats(){
   const fresh = d => LIVE.filter(s => signalsIn(s, 3).some(g => g.dir === d)).length;
   const trend = t => LIVE.filter(s => (s.smc || {}).trend === t).length;
@@ -386,6 +457,7 @@ function renderStats(){
     '<div class="stat bull"><b>' + fresh('bull') + '</b><span>bullish pattern, last 3 candles</span></div>' +
     '<div class="stat bear"><b>' + fresh('bear') + '</b><span>bearish pattern, last 3 candles</span></div>' +
     '<div class="stat"><b>' + sq + '</b><span>in a squeeze, or just fired</span></div>' +
+    planStats() +
     '<div class="stat warn"><b>' + (c.STALE || 0) + '</b><span>stale (last good result)</span></div>' +
     '<div class="stat warn"><b>' + (DATA.stocks.length - LIVE.length) + '</b><span>not scanned (Data issues)</span></div>';
 }
@@ -458,7 +530,8 @@ async function init(){
     b.classList.remove('hidden'); $('#refreshIST').textContent = 'unavailable'; return;
   }
   META = DATA.meta || {}; LIVE = DATA.stocks.filter(isLive);
-  buildFilterOptions(); renderHeader(); renderStats(); renderIssues();
+  BACKTEST = await loadBacktest(); PLAN_LIST = await loadPlans(); PLANS = Object.fromEntries(PLAN_LIST.map(p => [p.id, p]));
+  buildFilterOptions(); renderHeader(); renderStats(); renderPlanCompare(); renderBacktest(); renderIssues();
   renderFull();
 }
 init();

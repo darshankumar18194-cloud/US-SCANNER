@@ -1,6 +1,6 @@
 # Pattern Scanner
 
-Scans **only the symbols in `shared-data/symbols.csv`** (your CoinSwitch US-stock-futures list) on **closed 1-hour candles**, twice a day, and publishes a dashboard. Nothing to host, no server, no paid service.
+Scans **only the symbols in `shared-data/symbols.csv`** (your CoinSwitch US-stock-futures list) on **closed 1-hour candles**, every hour, and publishes a dashboard. Nothing to host, no server, no paid service.
 
 Each symbol gets
 * **SMC market structure** (BOS / CHoCH, strong and weak highs and lows) from your original engine,
@@ -30,12 +30,33 @@ You need a free GitHub account. Everything happens in the browser.
 
 ### What runs automatically
 
-| When | IST | What |
-|---|---|---|
-| Mon to Fri 17:30 UTC | 23:00 | **Mid-session look.** The candle still forming is excluded, so nothing flickers. |
-| Every day 00:02 UTC | 05:32 | **Final run** after the close, with the whole day's candles. Overwrites the mid-session result. |
+| When | What |
+|---|---|
+| Every hour at minute 35 UTC, every day | **Scan.** US one-hour candles close at :30 UTC, so each run starts about 5 minutes after one. The candle still forming is excluded, so nothing flickers. Weekends and holidays run too; they simply find no new candles. |
 
-Both times are inside or after the US session in summer and winter time. GitHub can start a scheduled run 10 to 60 minutes late. That is harmless.
+GitHub can start a scheduled run 10 to 60 minutes late. That is harmless.
+
+The website is published by the workflow itself: **Settings -> Pages -> Source must be "GitHub Actions"**. The `deploy` job in `scan.yml` publishes after every scan, and `pages.yml` publishes when you push changes yourself. (A push made by the scan bot cannot start other workflows, which is why the scan workflow publishes by itself.)
+
+The git history keeps only the newest 100 commits: the last step of `scan.yml` trims the older ones after each scan, so the repo stops growing. Files are not affected, only old versions of them.
+
+### Support / resistance levels and trade plans
+
+`levels.py` finds support and resistance from swing points (a port of the "Auto Touch S/R v4" rules) and stores the strongest ones per symbol in `stocks.json`; they are listed on each stock page. Grades are calibrated against random prices: **A = better than about 95% of the levels that pure noise produces**. They are evidence, not a probability.
+
+`plans.py` makes a trade plan for every confirmed **SMC + Pattern** setup (the same rows as the dashboard tables): entry = close of the confirming candle, SL = nearest level on the wrong side (at least 0.5 ATR away) minus 0.2 ATR, TP1 and TP2 = the next two levels, stop to entry after TP1. A plan is **frozen the first time it is seen** and then followed candle by candle until it stops out, reaches TP2 or expires. Every plan and its result in R is kept in `shared-data/plans.json`. Judge the plans by that record, not by how good they look.
+
+Three exit rules are tracked on the very same setups: **levels** (the rule above), **fixed** (the same stop, but targets at 1.5R and 3R) and **atr** (no levels: stop 1.5 ATR away, targets at 1.5R and 3R). The dashboard's "Which exit rule works?" table lists their live results. **Do not compare the rows with each other**: the rules have different stop and target shapes, which changes the result even on pure noise (on random prices "levels" beats "atr" by itself).
+
+### Backtest: the fair test
+
+Run it by hand: **Actions -> Backtest -> Run workflow**. It replays the scanner over the roughly two years of hourly history Yahoo provides, in 8 parallel jobs, then merges them into `shared-data/backtest.json`, which the dashboard shows as "Backtest: do the exit rules beat shuffled prices?".
+
+* It calls the real scanner code on the history as it looked at each earlier moment (never the future), freezes each plan when it is first seen, and follows it to the end of the data.
+* Every symbol is also replayed on **shuffled prices**: the same candles in random order, which keeps the volatility but destroys every real pattern, trend and support / resistance.
+* A rule has an edge only if its real result beats **its own** shuffled result by clearly more than the error margin. On simulated pure noise this difference stayed within about one error margin; the old rule-against-rule comparison gave a false 2.6.
+* With few setups the test cannot see small edges: the error margin shrinks with the square root of the number of setups (about 0.12R with 140 setups, about 0.03R with 2,000).
+* Limits: about two years is one market regime, the symbol list is today's (survivorship), costs and slippage are ignored, neighbouring setups overlap, and a plan is made up to 3 candles after its entry candle.
 
 ---
 

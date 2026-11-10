@@ -65,3 +65,7 @@ STALE_WARN_FRACTION = 0.25        # validate step warns when more than this shar
 
 # ---- Support / resistance levels (levels.py, ported from the book "Auto Touch S/R v4") ----------------------------
 LEVELS_ON = True                  # False = skip the level finder entirely (stocks.json then has no "levels")
+
+# ---- Trade plans (plans.py): entry / SL / TP1 / TP2 for confirmed SMC + pattern setups, tracked until they finish ---
+PLANS_ON = True
+PLANS_JSON = DATA_DIR / "plans.json"     # kept across scans (never trimmed): the record of every plan and its outcome

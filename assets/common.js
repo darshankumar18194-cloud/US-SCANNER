@@ -16,6 +16,20 @@ async function loadData(){
   setRef(d.meta.latest_candle);
   return d;
 }
+async function loadPlans(){          // trade plans live in their own file; the dashboard works without it
+  try {
+    const r = await fetch('../shared-data/plans.json?t=' + Math.floor(Date.now() / 60000), {cache: 'no-store'});
+    if (!r.ok) return [];
+    const d = await r.json();
+    return Array.isArray(d.plans) ? d.plans : [];
+  } catch (e) { return []; }
+}
+async function loadBacktest(){        // the backtest summary is optional; the dashboard works without it
+  try {
+    const r = await fetch('../shared-data/backtest.json?t=' + Math.floor(Date.now() / 60000), {cache: 'no-store'});
+    return r.ok ? await r.json() : null;
+  } catch (e) { return null; }
+}
 function safeUrl(u){ return typeof u === 'string' && /^https:\/\/www\.tradingview\.com\//.test(u) ? u : '#'; }
 function dirLabel(d){ return d === 'bull' ? 'Bullish' : d === 'bear' ? 'Bearish' : 'Neutral'; }
 function money(v){ return v == null ? '–' : Number(v).toFixed(v >= 1 ? 2 : 4); }

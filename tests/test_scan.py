@@ -46,6 +46,7 @@ class Env(unittest.TestCase):
         self.patches = [
             mock.patch.object(config, "DATA_DIR", self.tmp / "shared-data"),
             mock.patch.object(config, "STOCKS_JSON", self.tmp / "shared-data" / "stocks.json"),
+            mock.patch.object(config, "PLANS_JSON", self.tmp / "shared-data" / "plans.json"),
             mock.patch.object(config, "SYMBOLS_CSV", self.tmp / "shared-data" / "symbols.csv"),
             mock.patch.object(config, "PIPELINE_LOCK", self.tmp / "shared-data" / ".lock"),
             mock.patch.object(config, "LOG_DIR", self.tmp / "logs"),

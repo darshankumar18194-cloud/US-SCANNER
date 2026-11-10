@@ -56,6 +56,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add shared-data/stocks.json shared-data/symbols.csv
+          git add shared-data/plans.json 2>/dev/null || true      # the trade-plan record (may not exist on the very first run)
           if git diff --cached --quiet; then
             echo "Nothing changed - nothing to commit."
             exit 0

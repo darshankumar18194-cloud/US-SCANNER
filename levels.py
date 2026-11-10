@@ -75,9 +75,12 @@ class Params:
     weights: Dict[str, float] = field(default_factory=lambda: dict(
         touch=15, react=20, hold=15, conf=12, recent=8, tight=5, wick=5, days=6, sess=4, sweep=4, div=2, arrive=4))
     min_score: float = 40.0
-    grade_a: float = 70.0
-    grade_b: float = 55.0
-    grade_c: float = 40.0
+    # Grades are calibrated against NOISE, not the book's 70/55/40: on simulated random prices (5,367 levels) the score
+    # has median 75, 70th percentile 77, 85th 80, 95th 82. So A = better than ~95% of levels that pure noise produces,
+    # B = better than ~85%, C = better than ~70%. The book's cut-offs made 97% of real levels grade A (= no information).
+    grade_a: float = 82.0
+    grade_b: float = 80.0
+    grade_c: float = 77.0
     fresh_bonus: float = 5.0
     break_penalty: float = 1.5
     near_bias: float = 0.3           # score points lost per ATR of distance when ranking

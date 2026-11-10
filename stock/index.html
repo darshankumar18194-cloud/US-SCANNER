@@ -113,7 +113,7 @@ async function init(){
   $('#why').innerHTML = top && top.parts ? '<p class="small" style="margin:0 0 6px"><b>' + esc(top.name) + '</b> · ' + dirLabel(top.dir) + ' · score ' + top.score + '</p>' +
     PART_LABELS.map(([k, label, max], i) => '<div class="break"><span>' + label + '</span><div class="b"><i style="width:' + (top.parts[i] / max * 100) + '%"></i></div><span>' + top.parts[i] + '/' + max + '</span></div>').join('') : '<p class="muted">No signals to score.</p>';
   const lvList = s.levels || [], lm = s.levels_meta || {};
-  $('#lvlMeta').textContent = lvList.length ? '(' + lvList.length + ' kept from ' + (lm.candidates || 0) + ' candidates, ' + (lm.bars || 0) + ' hourly candles analysed; grade is relative evidence, not a probability)' : '';
+  $('#lvlMeta').textContent = lvList.length ? '(' + lvList.length + ' kept from ' + (lm.candidates || 0) + ' candidates, ' + (lm.bars || 0) + ' hourly candles analysed; grade A = better than ~95% of levels found in random prices; it is evidence, not a probability)' : '';
   const lvRow = l => {
     const notes = [].concat(l.flipped ? ['flipped' + (l.flip_ago != null ? ' ' + agoText(l.flip_ago) : '')] : [], l.fresh ? ['fresh'] : [], l.sweeps ? ['sweeps ' + l.sweeps] : [], l.breaks ? ['breaks ' + l.breaks] : [], (l.tags || []));
     const dist = l.dist_atr == null ? '–' : (l.dist_atr > 0 ? '+' : '') + l.dist_atr + ' ATR';
