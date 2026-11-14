@@ -1,0 +1,242 @@
+Symbol,Name,Type,Yahoo Symbol,Active,Notes
+AAL,American Airlines Group,Stock,,Y,
+AAOI,Applied Optoelectronics Inc,Stock,,Y,
+AAPL,Apple,Stock,,Y,
+ADBE,Adobe Inc,Stock,,Y,
+ADI,Analog Devices,Stock,,Y,
+AEHR,Aehr Test Systems,Stock,,Y,
+ALAB,"Astera Labs, Inc.",Stock,,Y,
+AMAT,Applied Materials,Stock,,Y,
+AMDSTOCK,Advanced Micro Devices Inc,Stock,AMD,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+AMGN,Amgen,Stock,,Y,
+AMZN,Amazon,Stock,,Y,
+AMZU,Direxion Daily AMZN Bull 2X Shares,ETF,,Y,
+ANET,Arista Networks,Stock,,Y,
+ANTHROPIC,Anthropic,Stock,,N,Private; Private company - no public price data
+APLD,Applied Digital Corporation,Stock,,Y,
+APPSTOCK,Applovin Corp,Stock,APP,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+ARKK,ARK Innovation ETF,ETF,,Y,
+ARM,Arm Holdings,Stock,,Y,
+ASML,ASML Holding NV,Stock,,Y,
+ASTS,AST SpaceMobile Inc,Stock,,Y,
+AVGO,Broadcom,Stock,,Y,
+AXTI,AXT Inc,Stock,,Y,
+BABA,Alibaba,Stock,,Y,
+BAC,Bank of America Corp,Stock,,Y,
+BBX,BBX Capital,Stock,,Y,
+BE,Bloom Energy,Stock,,Y,
+BIIB,Biogen Inc.,Stock,,Y,
+BMNR,Bitminr,Stock,,Y,
+BNC,CEA Industries Inc.,Stock,,Y,
+BOT,RoboStrategy Inc,Stock,,Y,
+BSP,Bending Spoons SpA,Stock,,N,Private; Private company - no public price data
+BTDR,Bitdeer Technologies Group,Stock,,Y,
+BX,Blackstone Inc.,Stock,,Y,
+BYD,BYD CO. LTD.,Stock,1211.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+BZ,Kanzhun Ltd,Stock,,Y,
+CATSTOCK,Caterpillar,Stock,CAT,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+CBRS,CyberStar,Stock,,Y,
+CGNX,Cognex Corporation,Stock,,Y,
+CIEN,Ciena Corporation,Stock,,Y,
+CIFR,Cipher Digital,Stock,,Y,
+CLSK,"CleanSpark, Inc.",Stock,,Y,
+COHR,Coherent,Stock,,Y,
+COIN,Coinbase,Stock,,Y,
+CONL,GraniteShares 2x Long COIN,ETF,,Y,
+CORZ,"Core Scientific, Inc.",Stock,,Y,
+COST,Costco Wholesale Corp,Stock,,Y,
+CRCL,Circle,Stock,,Y,
+CRDO,Credo Technology Group Holding Ltd,Stock,,Y,
+CRM,Salesforce,Stock,,Y,
+CRWD,Crowdstrike Holdings Inc,Stock,,Y,
+CRWV,CoreWeave,Stock,,Y,
+CSCO,Cisco,Stock,,Y,
+CSOPSAMSUNG2L,CSOP Samsung Daily Max 2x HKEX:7747,ETF,7747.HK,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+CSOPSKHYNIX2L,CSOP SK Hynix Daily Max 2x HKEX:7709,ETF,7709.HK,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+CVNA,Carvana Co,Stock,,Y,
+CVXSTOCK,Chevron Corp,Stock,CVX,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+CYPH,Cypherpunk Technologies Inc,Stock,,Y,
+DDOG,"Datadog, Inc.",Stock,,Y,
+DELL,Dell Technologies,Stock,,Y,
+DJT,Trump Media & Technology Group Corp.,Stock,,Y,
+DKNG,Draftkings Inc.,Stock,,Y,
+DRAM,Liqid,Stock,,N,"Unclear; Unclear what this is - verify, then set Yahoo Symbol and Active"
+EBAY,Ebay Inc.,Stock,,Y,
+EWJ,iShares MSCI Japan ETF,ETF,,Y,
+EWT,iShares MSCI Taiwan ETF,ETF,,Y,
+EWY,iShares MSCI South Korea ETF,ETF,,Y,
+EWZ,iShares MSCI Brazil ETF,ETF,,Y,
+FLEX,Flex Ltd.,Stock,,Y,
+FLNC,"Fluence Energy, Inc.",Stock,,Y,
+FLY,Firefly Aerospace Inc.,Stock,,Y,
+FORMSTOCK,FormFactor Inc,Stock,FORM,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+FUTU,Futu Holdings,Stock,,Y,
+FWDI,"Forward Industries, Inc.",Stock,,Y,
+GE,General Electric Co,Stock,,Y,
+GEV,GE Vernova Inc.,Stock,,Y,
+GILD,"Gilead Sciences, Inc.",Stock,,Y,
+GLW,Corning Incorporated,Stock,,Y,
+GMESTOCK,Gmestock,Stock,GME,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+GOOGL,Google,Stock,,Y,
+GPRO,"GoPro, Inc.",Stock,,Y,
+GS,Goldman Sachs Group Inc,Stock,,Y,
+GTLB,GitLab Inc.,Stock,,Y,
+HANMI,"HANMI Semiconductor Co., Ltd. (KRX: 042700)",Stock,042700.KS,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+HD,Home Depot,Stock,,Y,
+HIMS,Hims & Hers Health Inc,Stock,,Y,
+HOOD,Robinhood,Stock,,Y,
+HORIZON,Horizon Robotics,Stock,9660.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+HPE,Hewlett Packard Enterprise Co,Stock,,Y,
+HUAHONG,Hua Hong Semiconductor,Stock,1347.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+HUT,Hut 8 Corp,Stock,,Y,
+HYUNDAI,Hyundai Motor Co,Stock,005380.KS,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+IBIT,iShares Bitcoin Trust ETF,ETF,,Y,
+IBM,IBM,Stock,,Y,
+INFQ,Infleqtion Inc,Stock,,Y,
+INTC,Intel,Stock,,Y,
+INTU,Intuit Inc,Stock,,Y,
+INTW,GraniteShares 2x Long INTC Daily ETF,ETF,,Y,
+IONQ,"Ionq, Inc.",Stock,,Y,
+IREN,IREN Ltd,Stock,,Y,
+ISRG,Intuitive Surgical Inc,Stock,,Y,
+IWM,iShares Russell 2000 ETF,ETF,,Y,
+JD,JD.Com Inc,Stock,,Y,
+JNJ,Johnson & Johnson,Stock,,Y,
+JPM,JPMorgan Chase,Stock,,Y,
+KLAC,KLA Corp,Stock,,Y,
+KODEX200,Samsung KODEX 200 ETF,ETF,069500.KS,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+KORU,Direxion Daily MSCI South Korea Bull 3X ETF,ETF,,Y,
+KSTR,KraneShares SSE STAR Market 50 Index ETF,ETF,,Y,
+KUAISHOU,Kuaishou Technology,Stock,1024.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+LAOPU,Laopu Gold,Stock,6181.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+LENOVO,Lenovo,Stock,0992.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+LGELECTRONICS,LG Electronics Inc,Stock,066570.KS,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+LITE,Lumentum,Stock,,Y,
+LLY,Eli Lilly,Stock,,Y,
+LRCX,Lam Research Corp,Stock,,Y,
+LYTE,Roundhill Photonics & Optics ETF,ETF,,Y,
+MAGS,Roundhill Magnificent Seven ETF,ETF,,Y,
+MARA,MARA Holdings Inc,Stock,,Y,
+MCD,McDonald's Corp,Stock,,Y,
+MDB,"Mongodb, Inc.",Stock,,Y,
+MEITU,Meitu,Stock,1357.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+MEITUAN,Meituan,Stock,3690.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+META,Meta,Stock,,Y,
+MINIMAX,Minimax,Stock,,N,"Unclear; Unclear/recent listing - verify the Yahoo ticker, then set Active to Y"
+MNST,Monster Beverage Corporation,Stock,,Y,
+MO,"Altria Group, Inc.",Stock,,Y,
+MOONSHOT,Moonshot AI,Stock,,N,Private; Private company - no public price data
+MRK,Merck & Co Inc,Stock,,Y,
+MRNA,Moderna Inc,Stock,,Y,
+MRVL,Marvell Technology,Stock,,Y,
+MSFT,Microsoft,Stock,,Y,
+MSFU,Direxion Daily MSFT Bull 2X,ETF,,Y,
+MSTR,MicroStrategy,Stock,,Y,
+MSTU,T-Rex 2X Long MSTR Daily Target ETF,ETF,,Y,
+MU,Micron Technology,Stock,,Y,
+MUU,Direxion Daily MU Bull 2X ETF,ETF,,Y,
+MVLL,GraniteShares 2x Long MRVL Daily ETF,ETF,,Y,
+NAVER,Naver Corp,Stock,035420.KS,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+NBIS,Nebius Group,Stock,,Y,
+NCLD,Roundhill Neocloud ETF,ETF,,Y,
+NET,"Cloudflare, Inc.",Stock,,Y,
+NFLX,Netflix,Stock,,Y,
+NOKIA,Nokia Oyj,Stock,NOK,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+NOW,ChangeNOW Token,Stock,,N,"Crypto token; CSV calls this the ChangeNOW crypto token, not a stock. If you meant ServiceNow, set Yahoo Symbol to NOW and Active to Y"
+NVDA,Nvidia,Stock,,Y,
+NVDL,GraniteShares 2x Long NVDA ETF,ETF,,Y,
+NVO,Novo Nordisk,Stock,,Y,
+OKLO,Oklo Inc,Stock,,Y,
+OKTA,"Okta, Inc.",Stock,,Y,
+ONDS,Ondas Inc,Stock,,Y,
+OPENAI,OpenAI,Stock,,N,Private; Private company - no public price data
+ORCL,Oracle,Stock,,Y,
+OUST,"Ouster, Inc.",Stock,,Y,
+PANW,Palo Alto Networks Inc,Stock,,Y,
+PATH,"UiPath, Inc.",Stock,,Y,
+PDD,PDD Holdings Inc,Stock,,Y,
+PENGSTOCK,Penguin Solutions Inc,Stock,PENG,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+PLTR,Palantir,Stock,,Y,
+POET,POET Technologies Inc.,Stock,,Y,
+PURR,Hyperliquid Strategies Inc,Stock,,Y,
+QCOM,Qualcomm,Stock,,Y,
+QNTX,Quantinuum Inc,Stock,,Y,
+QQQ,Invesco QQQ Trust ETF,ETF,,Y,
+RAM,Roundhill T-REX 2X Long DRAM Daily Target ETF,ETF,,Y,
+RDDT,Reddit Inc,Stock,,Y,
+RDW,Redwire Corporation,Stock,,Y,
+REGN,"Regeneron Pharmaceuticals, Inc.",Stock,,Y,
+RIOT,Riot Platforms Inc,Stock,,Y,
+RIVN,Rivian Automotive Inc,Stock,,Y,
+RKLB,Rocket Lab,Stock,,Y,
+RUM,Rumble Inc.,Stock,,Y,
+SAMSUNG,Samsung Electronics Co Ltd,Stock,005930.KS,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+SAMSUNGEM,Samsung Electro-Mechanics Co Ltd,Stock,009150.KS,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+SDGR,"Schrodinger, Inc.",Stock,,Y,
+SECZ,Securitize Corp.,Stock,,Y,
+SENSETIME,SenseTime,Stock,0020.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+SHAZ,SharonAI Holdings Inc,Stock,,Y,
+SHEIN,SHEIN Global Holdings Limited,Stock,,N,Private; Private company - no public price data
+SHOP,Shopify Inc,Stock,,Y,
+SKDD,GraniteShares 2x Short SK Hynix Daily ETF,ETF,,Y,
+SKHY,SK hynix Inc (alt listing),Stock,,N,Non-US listing; Alternative listing of SK hynix (duplicate of SKHYNIX) - check before enabling
+SKHYNIX,SK hynix Inc,Stock,000660.KS,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+SKUU,GraniteShares 2x Long SK Hynix Daily ETF,ETF,,Y,
+SMCI,Super Micro Computer Inc,Stock,,Y,
+SMH,VanEck Semiconductor ETF,ETF,,Y,
+SMIC,Semiconductor Manufacturing International Corp,Stock,0981.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+SNDK,SanDisk,Stock,,Y,
+SNOW,Snowflake Inc,Stock,,Y,
+SNXX,Tradr 2X Long SNDK Daily ETF,ETF,,Y,
+SOFI,SoFi Technologies Inc,Stock,,Y,
+SONY,Sony Group Corp,Stock,,Y,
+SOXL,Direxion Semiconductor Bull 3X ETF,ETF,,Y,
+SOXS,Direxion Daily Semiconductor Bear 3X ETF,ETF,,Y,
+SOXX,iShares Semiconductor ETF,ETF,,Y,
+SPCH,Leverage Shares 2X Long SPCX Daily ETF,ETF,,Y,
+SPCX,SpaceX,Stock,,N,Private; Private company - no public price data
+SPOT,Spotify Technology SA,Stock,,Y,
+SPXL,Direxion Daily S&P 500 Bull 3X ETF,ETF,,Y,
+SPY,SPDR S&P 500 ETF,ETF,,Y,
+SQQQ,ProShares UltraPro Short QQQ,ETF,,Y,
+STXX,Seagate Technology Holdings PLC,Stock,STX,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+TEAM,Atlassian Corp,Stock,,Y,
+TEM,"Tempus Ai, Inc.",Stock,,Y,
+TENCENT,Tencent,Stock,0700.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+TER,"Teradyne, Inc.",Stock,,Y,
+TLT,iShares 20+ Year Treasury Bond ETF,ETF,,Y,
+TMX,TermMax,Stock,,N,"Unclear; Unclear - verify, then set Yahoo Symbol and Active"
+TQQQ,ProShares UltraPro QQQ,ETF,,Y,
+TSEM,Tower Semiconductor Ltd.,Stock,,Y,
+TSLA,Tesla,Stock,,Y,
+TSLL,Direxion Daily TSLA Bull 2X ETF,ETF,,Y,
+TSM,Taiwan Semiconductor Manufacturing Co Ltd,Stock,,Y,
+TTWO,"Take-Two Interactive Software, Inc.",Stock,,Y,
+TWST,Twist Bioscience Corporation,Stock,,Y,
+TXN,Texas Instruments Inc,Stock,,Y,
+TZA,Direxion Daily Small Cap Bear 3x ETF,ETF,,Y,
+UBER,Uber Technologies,Stock,,Y,
+UNH,UnitedHealth Group Inc,Stock,,Y,
+UNITREE,Yushu Technology Co (Unitree),Stock,,N,Private; Private company - no public price data
+URNM,Sprott Uranium Miners ETF,ETF,,Y,
+USAR,USA Rare Earth,Stock,,Y,
+UVXY,ProShares Ultra VIX Short-Term Futures ETF,ETF,,Y,
+VRT,Vertiv Holdings Co,Stock,,Y,
+VRTXSTOCK,Vertex Pharmaceuticals Incorporated,Stock,VRTX,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+VST,Vistra Corp,Stock,,Y,
+WDC,Western Digital,Stock,,Y,
+WENSTOCK,Wendy's Company,Stock,WEN,Y,Yahoo ticker mapped from CoinSwitch name - please verify
+XBI,SPDR S&P Biotech ETF,ETF,,Y,
+XIAOMI,Xiaomi (HKEX:1810),Stock,1810.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+XLE,SPDR Energy Select Sector ETF,ETF,,Y,
+XLF,SPDR Financial Select Sector ETF,ETF,,Y,
+XLK,SPDR Technology Select Sector ETF,ETF,,Y,
+XLP,SPDR Consumer Staples Select Sector ETF,ETF,,Y,
+XLU,SPDR Utilities Select Sector ETF,ETF,,Y,
+XLV,SPDR Health Care Select Sector ETF,ETF,,Y,
+XOM,Exxon Mobil Corp,Stock,,Y,
+YOFC,Yangtze Optical Fibre and Cable JSC Ltd,Stock,6869.HK,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+ZHIPU,Zhipu,Stock,,N,"Unclear; Unclear/recent listing - verify the Yahoo ticker, then set Active to Y"
+ZHONGJI,"ZhongJi Innolight Co., Ltd.",Stock,300308.SZ,Y,Non-US listing; Yahoo ticker mapped from CoinSwitch name - please verify
+ZM,"Zoom Communications, Inc.",Stock,,Y,
+ZS,"Zscaler, Inc.",Stock,,Y,

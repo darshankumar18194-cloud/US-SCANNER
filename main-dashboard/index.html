@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pattern Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="banner err hidden" id="errBanner"></div>
+<div class="banner hidden" id="staleBanner"></div>
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <h1>Pattern Scanner</h1>
+    <p>1-hour candles, regular US session, closed candles only. SMC structure with candlestick, squeeze and volume signals.</p>
+  </div>
+  <div class="refresh">
+    <div>Last refresh <strong id="refreshIST">loading…</strong></div>
+    <div id="refreshSub"></div>
+    <button class="theme-btn" id="themeBtn" type="button">Switch theme</button>
+  </div>
+</header>
+
+<section class="stats" id="stats" aria-label="Scan summary"></section>
+
+<div class="sec"><h2>Signals</h2></div>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" aria-selected="true" data-tab="combo">SMC + pattern</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="smc">SMC signals</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="pat">Pattern signals</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="all">All symbols</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="feed">Signal feed<span class="count" id="feedCount"></span></button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="watch">Watchlist<span class="count" id="watchCount"></span></button>
+</div>
+
+<section class="filters" aria-label="Filters">
+  <div class="field"><label for="fSearch">Symbol or name</label><input id="fSearch" type="search" placeholder="Search"></div>
+  <div class="field"><label for="fType">Type</label><select id="fType"><option value="">All</option><option>Stock</option><option>ETF</option></select></div>
+  <div class="field"><label for="fSmc">SMC trend</label><select id="fSmc"><option value="">Any</option><option value="BULLISH">Bullish</option><option value="BEARISH">Bearish</option></select></div>
+  <div class="field"><label for="fStrength">SMC strength</label><select id="fStrength"><option value="">Strong and weak</option><option value="STRONG">Strong only</option><option value="WEAK">Weak only</option></select></div>
+  <div class="field"><label for="fEvent">Last structure event</label><select id="fEvent"><option value="">Any</option><option value="BOS">BOS</option><option value="CHOCH">CHoCH</option></select></div>
+  <div class="field"><label for="fAge">SMC high / low set within</label><select id="fAge"><option value="">Any time</option><option value="3">3 candles</option><option value="6">6 candles</option><option value="10">10 candles</option><option value="20">20 candles</option><option value="35">35 candles</option></select></div>
+  <div class="field"><label for="fGroup">Pattern group</label><select id="fGroup"><option value="">All groups</option></select></div>
+  <div class="field"><label for="fPat">Pattern / signal</label><select id="fPat"><option value="">All signals</option></select></div>
+  <div class="field"><label for="fWin">Pattern formed within last</label><select id="fWin"></select></div>
+  <div class="field"><label for="fConfirm">Pattern confirmation</label><select id="fConfirm"><option value="confirmed" selected>Confirmed only</option><option value="pending">Pending only</option><option value="any">Confirmed and pending</option></select></div>
+  <div class="field"><label for="fConf">Min confluence <span class="val" id="fConfVal">0</span></label><input id="fConf" type="range" min="0" max="90" step="5" value="0"></div>
+  <div class="field"><label for="fStatus">Data status</label><select id="fStatus"><option value="">Any</option><option>OK</option><option>STALE</option></select></div>
+  <div class="field check"><label><input id="fOnly" type="checkbox"> Only symbols with a pattern (All symbols tab)</label></div>
+  <div class="actions"><button class="btn" id="fReset" type="button">Reset filters</button></div>
+</section>
+
+<div id="viewCombo"><section class="pair one" id="fullCombo"></section></div>
+<div id="viewSmc" class="hidden"><section class="pair" id="fullSmc"></section></div>
+<div id="viewPat" class="hidden"><section class="pair" id="fullPat"></section></div>
+
+<div id="viewAll" class="hidden">
+  <section class="card">
+    <div class="scroll"><table id="tbl" style="min-width:1280px"><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+    <div class="empty hidden" id="emptyAll"></div>
+    <div class="pager"><span class="muted small" id="pagerInfo"></span><div class="btns"><button class="btn" id="prev" type="button">Previous</button><button class="btn" id="next" type="button">Next</button></div></div>
+  </section>
+</div>
+
+<div id="viewFeed" class="hidden"><section class="card"><ul class="feed" id="feed"></ul><div class="empty hidden" id="emptyFeed"><b>No signals in this window</b>Try a longer window or reset the filters.</div></section></div>
+
+<div id="viewWatch" class="hidden"><section class="card"><div class="scroll"><table id="tblWatch" style="min-width:1280px"><thead><tr id="theadW"></tr></thead><tbody id="tbodyW"></tbody></table></div>
+  <div class="empty hidden" id="emptyWatch"><b>Your watchlist is empty</b>Select the star next to a symbol in the All symbols tab. Stars are saved in this browser only.</div></section></div>
+
+<details class="issues" id="issues" hidden>
+  <summary id="issuesSummary"></summary>
+  <div class="body">
+    <p class="muted small">These symbols are not in the tables above. Fix them in <code>shared-data/symbols.csv</code> (the <code>Yahoo Symbol</code> and <code>Active</code> columns) and the next run picks the change up.</p>
+    <div class="scroll"><table><thead><tr><th>Symbol</th><th>Yahoo symbol</th><th>Status</th><th>Detail</th></tr></thead><tbody id="issuesBody"></tbody></table></div>
+    <p class="muted small" id="csvProblems"></p>
+  </div>
+</details>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+let DATA = null, LIVE = [], META = {};
+let watch = getWatch();
+const $ = (s, r=document) => r.querySelector(s);
+const stockUrl = sym => '../stock/index.html?symbol=' + encodeURIComponent(sym);
+const DEFAULT_F = {q:'', type:'', smc:'', strength:'', event:'', age:'', group:'', pat:'', win:10, conf:0, status:'', confirm:'confirmed', only:false};
+const state = { tab: 'combo', f: {...DEFAULT_F}, all: {key: 'conf', dir: -1, page: 1, per: 25},
+  t: { smcHigh: {key:'rank', dir:-1, page:1}, smcLow: {key:'rank', dir:-1, page:1}, patBull: {key:'score', dir:-1, page:1}, patBear: {key:'score', dir:-1, page:1},
+    comboLow: {key:'rank', dir:-1, page:1}, comboHigh: {key:'rank', dir:-1, page:1} } };
+const PER = 20;
+
+/* ---------- small cell helpers ---------- */
+const SIG = {STRONG_HIGH:['sh','Strong High'], WEAK_HIGH:['wh','Weak High'], STRONG_LOW:['sl','Strong Low'], WEAK_LOW:['wl','Weak Low']};
+const sigPill = sig => SIG[sig] ? '<span class="pill ' + SIG[sig][0] + '">' + SIG[sig][1] + '</span>' : '<span class="muted">–</span>';
+const EV = {BOS:'BOS', CHOCH:'CHoCH'};
+function trendCell(s){
+  const m = s.smc || {}, t = m.trend;
+  if (t !== 'BULLISH' && t !== 'BEARISH') return '<span class="muted small">Unknown</span>';
+  const ev = EV[m.structure_event] ? EV[m.structure_event] + (m.structure_bars_since >= 0 ? ', ' + m.structure_bars_since + ' ago' : '') : '';
+  return '<span class="pill ' + (t === 'BULLISH' ? 'bull' : 'bear') + '">' + (t === 'BULLISH' ? 'Bullish' : 'Bearish') + '</span> <span class="muted small">' + esc(ev) + '</span>';
+}
+const symCell = s => '<a class="symlink" href="' + stockUrl(s.symbol) + '"><b>' + esc(s.symbol) + '</b></a><span class="small muted" title="' + esc(s.name) + '" style="display:block;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(s.name) + '</span>';
+const priceCell = s => '$' + money(s.price) + (s.change_pct == null ? '' : '<br><span class="small" style="color:var(--' + (s.change_pct >= 0 ? 'bull' : 'bear') + ')">' + (s.change_pct >= 0 ? '+' : '') + s.change_pct.toFixed(2) + '%</span>');
+function confCell(n, dir){ if (!n) return '<span class="muted">0</span>';
+  return '<div class="conf"><div class="bar"><i style="width:' + n + '%;background:var(--' + colorVar(dir) + ')"></i></div><span class="n">' + n + '</span></div>'; }
+function sqCell(c){ c = c || {}; const st = c.squeeze_state, n = (c.compression_layers || []).length;
+  const base = st === 'on' ? '<span class="pill neutral">Squeeze on</span>' : st === 'fired' ? '<span class="pill bull">Squeeze fired</span>' : '<span class="muted small">Off</span>';
+  return base + (n >= 3 ? ' <span class="muted small" title="Layers on: ' + esc((c.compression_layers || []).join(', ')) + '">' + n + ' layers</span>' : ''); }
+function rvCell(c){ const v = c && c.rel_volume; if (v == null) return '<span class="muted">–</span>';
+  const cls = v >= 1.5 ? 'bull' : v <= 0.7 ? 'neutral' : 'none', txt = v >= 1.5 ? 'Spike' : v <= 0.7 ? 'Dry-up' : 'Normal';
+  return v.toFixed(2) + 'x <span class="pill ' + cls + '">' + txt + '</span>'; }
+function statusCell(s){ return s.scanner_status === 'OK' ? '<span class="pill none">OK</span>'
+  : '<span class="pill neutral" title="' + esc(s.scan_error || 'Last scan failed') + '. Showing the previous good result from ' + esc(s.scanned_at || '?') + '.">Stale</span>'; }
+function patCell(b, more){
+  if (!b) return '<span class="muted">No signal in window</span>';
+  return '<div class="patcell ' + b.dir + '"><b>' + esc(b.name) + '</b><span>' + esc(fmtTime(b.time)) + ', ' + agoText(b.since) + (more > 0 ? ' · +' + more + ' more' : '') + '</span></div>';
+}
+function levelCell(m, key){      // High/Low signal: pill + how long ago the level was set
+  const sig = m[key + '_signal'], since = m[key + '_bars_since'];
+  if (!SIG[sig]) return '<span class="muted">–</span>';
+  return sigPill(sig) + (since != null && since >= 0 ? ' <span class="muted small">' + since + ' ago</span>' : '');
+}
+
+/* ---------- filters ---------- */
+function symbolOk(s){
+  const f = state.f, q = f.q.trim().toLowerCase(), m = s.smc || {};
+  return (!q || s.symbol.toLowerCase().includes(q) || (s.name || '').toLowerCase().includes(q))
+    && (!f.type || s.type === f.type) && (!f.smc || m.trend === f.smc) && (!f.status || s.scanner_status === f.status)
+    && (!f.event || m.structure_event === f.event);
+}
+/* SMC rows: side 'high' uses the trailing high (Strong/Weak High, bearish rank), 'low' the trailing low. */
+function smcRows(side, filtered){
+  const key = side === 'high' ? 'top' : 'bottom', f = state.f;
+  return (filtered ? LIVE.filter(symbolOk) : LIVE).map(s => {
+    const m = s.smc || {}, level = m[key + '_signal_price'];
+    return {s, sig: m[key + '_signal'], level, time: m[key + '_signal_time'], since: m[key + '_bars_since'],
+      rank: side === 'high' ? m.bearish_rank_score : m.bullish_rank_score,
+      away: level ? (side === 'high' ? (level - s.price) / s.price : (s.price - level) / level) * 100 : null};
+  }).filter(r => SIG[r.sig]
+    && (!filtered || ((!f.strength || r.sig.startsWith(f.strength)) && (f.age === '' || (r.since != null && r.since >= 0 && r.since <= +f.age)))));
+}
+/* Pattern rows: every symbol with at least one bullish (or bearish) signal in the window that passes the confirmation rule.
+   Failed patterns never count. The Top 20 boards always use "confirmed" (patStatus in assets/common.js). */
+function patRows(dir, filtered){
+  const f = state.f, win = filtered ? f.win : (META.top_board_window || 20), mode = filtered ? f.confirm : 'confirmed';
+  const passes = st => mode === 'any' ? st !== 'failed' : mode === 'pending' ? st === 'pending' : (st === 'confirmed' || st === 'trigger');
+  return (filtered ? LIVE.filter(symbolOk) : LIVE).map(s => {
+    let items = signalsIn(s, win).filter(g => g.dir === dir).map(g => ({g, st: patStatus(s, g)})).filter(x => passes(x.st));
+    if (filtered) { if (f.group) items = items.filter(x => x.g.group === f.group); if (f.pat) items = items.filter(x => x.g.name === f.pat); }
+    items.sort((x, y) => y.g.score - x.g.score || x.g.since - y.g.since);
+    const top = items[0];
+    return top ? {s, best: top.g, n: items.length, score: top.g.score, since: top.g.since, status: top.st} : null;
+  }).filter(r => r && (!filtered || r.score >= f.conf));
+}
+const PAT_TIP = "Confirmed only by default: a candle pattern counts once a later candle has closed beyond it (the Handbook's rule). Squeeze, volume, trend and structure signals show as Trigger because the close beyond a level is the signal itself. Failed patterns are never shown. Use the Pattern confirmation filter to see pending ones.";
+function patStatusCell(r, dir){
+  return r.status === 'confirmed' ? '<span class="pill ' + dir + '">Confirmed</span>'
+    : r.status === 'pending' ? '<span class="pill neutral" title="Pattern formed, no later candle has closed beyond it yet">Pending</span>'
+    : '<span class="pill none" title="Event signal: the close beyond its level is the trigger itself, nothing further to confirm">Trigger</span>';
+}
+
+/* ---------- SMC level + reversal pattern ---------- */
+/* Reversal patterns with 3 stars or more in the Handbook ratings (docs/SIGNALS.md), plus Turtle Soup and Undercut & Rally.
+   Continuation patterns (windows, three methods, marubozu) are left out on purpose. */
+const REV = {
+  bull: ['Hammer','Inverted Hammer','Dragonfly Doji','Bullish Engulfing','Piercing Line','Bullish Kicker','Bullish Harami Cross','Bullish Doji Star',
+         'Morning Star','Bullish Abandoned Baby','Three White Soldiers','Three Inside Up','Three Outside Up','Bullish Tri-Star','Turtle Soup','Undercut & Rally'],
+  bear: ['Shooting Star','Hanging Man','Gravestone Doji','Bearish Engulfing','Dark Cloud Cover','Bearish Kicker','Bearish Harami Cross','Bearish Doji Star',
+         'Evening Star','Bearish Abandoned Baby','Three Black Crows','Three Inside Down','Three Outside Down','Bearish Tri-Star','Turtle Soup']
+};
+const COMBO_ATR = 1;           // the pattern's extreme must be within this many ATR of the SMC level
+const COMBO_TREND = 1;         // price must have travelled into the level: the 8 closes before the pattern average at least this many ATR beyond it
+const COMBO_RUN = 2;           // drop the setup once price has already run this many ATR away from the pattern (the turn is over, not coming)
+const COMBO_TOP_WIN = 10;      // the Top 20 boards only look at patterns formed in the last 10 candles
+/* side 'low': Strong/Weak Low + bullish pattern. side 'high': Strong/Weak High + bearish pattern. */
+function comboRows(side, filtered){
+  const low = side === 'low', key = low ? 'bottom' : 'top', dir = low ? 'bull' : 'bear', f = state.f;
+  const win = filtered ? f.win : COMBO_TOP_WIN, out = [];
+  (filtered ? LIVE.filter(symbolOk) : LIVE).forEach(s => {
+    const m = s.smc || {}, sig = m[key + '_signal'], level = m[key + '_signal_price'], lvSince = m[key + '_bars_since'];
+    const atr = (s.context || {}).atr, cs = s.candles || [], n = cs.length;
+    if (!SIG[sig] || !sig.endsWith(low ? 'LOW' : 'HIGH') || level == null || !(atr > 0) || !n) return;
+    if (filtered && ((f.strength && !sig.startsWith(f.strength)) || (f.age !== '' && !(lvSince != null && lvSince >= 0 && lvSince <= +f.age)))) return;
+    const cands = [];
+    signalsIn(s, win).forEach(g => {
+      if (g.dir !== dir || !REV[dir].includes(g.name) || g.confirm === 'failed') return;
+      if (filtered && ((f.group && g.group !== f.group) || (f.pat && g.name !== f.pat) || g.score < f.conf)) return;
+      if (lvSince != null && lvSince >= 0 && g.since > lvSince) return;            // pattern must come at or after the level was set
+      const end = n - 1 - g.since, a = Math.max(0, end - (g.len - 1)); if (end < 0) return;
+      let lo = Infinity, hi = -Infinity;
+      for (let i = a; i <= end; i++) { lo = Math.min(lo, cs[i][3]); hi = Math.max(hi, cs[i][2]); }
+      const ext = low ? lo : hi, gap = ext - level;
+      if (Math.abs(gap) > COMBO_ATR * atr) return;                                  // not at the level
+      const pre = cs.slice(Math.max(0, a - 8), a);                                   // the candles before the pattern
+      if (pre.length < 4) return;
+      const avg = pre.reduce((t, c) => t + c[4], 0) / pre.length;
+      if (!((low ? avg - ext : ext - avg) >= COMBO_TREND * atr)) return;            // no real move into the level, so nothing to reverse
+      if ((low ? s.price - ext : ext - s.price) > COMBO_RUN * atr) return;          // already ran away, too late
+      let status = g.confirm || 'pending', failed = false, confIdx = -1;
+      for (let i = end + 1; i < n; i++) {
+        if (low ? cs[i][3] < ext : cs[i][2] > ext) { failed = true; break; }       // new low (high) after the pattern: setup is dead
+        if (confIdx < 0 && (low ? cs[i][4] > hi : cs[i][4] < lo)) confIdx = i;      // first later candle that closed beyond the pattern = confirmation candle
+        if (status === 'pending' && confIdx === i) status = 'confirmed';
+      }
+      if (failed) return;
+      if (status !== 'confirmed') return;                                           // only turns that have already started: a later candle closed beyond the pattern
+      cands.push({g, status, confTime: confIdx >= 0 ? cs[confIdx][0] : null, confPrice: confIdx >= 0 ? cs[confIdx][4] : null, confSince: confIdx >= 0 ? n - 1 - confIdx : null, stop: g.stop != null ? g.stop : ext, dist: Math.abs(gap) / atr, above: low ? gap >= 0 : gap <= 0});
+    });
+    if (!cands.length) return;
+    cands.sort((x, y) => y.g.score - x.g.score || x.g.since - y.g.since);
+    const c = cands[0];
+    out.push({s, sig, level, time: m[key + '_signal_time'], since: lvSince, rank: low ? m.bullish_rank_score : m.bearish_rank_score,
+      best: c.g, n: cands.length, status: c.status, confTime: c.confTime, confPrice: c.confPrice, confSince: c.confSince, stop: c.stop, dist: c.dist, above: c.above, score: c.g.score});
+  });
+  return out;
+}
+
+/* ---------- generic compact table ---------- */
+const smcCols = side => [
+  {k:'sym', t:'Symbol', get: r => r.s.symbol, cell: r => symCell(r.s)},
+  {k:'sig', t: side === 'high' ? 'High signal' : 'Low signal', get: r => r.sig, cell: r => sigPill(r.sig)},
+  {k:'level', t: side === 'high' ? 'High level' : 'Low level', num:true, get: r => r.level, cell: r => '$' + money(r.level) + '<br><span class="muted small">' + (r.away == null ? '–' : r.away.toFixed(1) + '% ' + (side === 'high' ? 'below' : 'above')) + '</span>'},
+  {k:'since', t:'Set', get: r => r.since ?? 999, cell: r => '<span class="small">' + esc(fmtTime(r.time)) + '</span><br><span class="muted small">' + (r.since != null && r.since >= 0 ? agoText(r.since) : '–') + '</span>'},
+  {k:'rank', t:'Rank', num:true, get: r => r.rank ?? -1, cell: r => '<b style="color:var(--' + (side === 'high' ? 'bear' : 'bull') + ')">' + (r.rank != null ? Number(r.rank).toFixed(1) : '–') + '</b>'},
+  {k:'price', t:'Price', num:true, get: r => r.s.price, cell: r => priceCell(r.s)}
+];
+const patCols = dir => [
+  {k:'sym', t:'Symbol', get: r => r.s.symbol, cell: r => symCell(r.s)},
+  {k:'sig', t:'Best signal (newest first)', get: r => r.since, cell: r => patCell(r.best, r.n - 1)},
+  {k:'status', t:'Status', get: r => r.status, cell: r => patStatusCell(r, dir)},
+  {k:'score', t:'Confluence', get: r => r.score, cell: r => confCell(r.score, dir)},
+  {k:'price', t:'Price', num:true, get: r => r.s.price, cell: r => priceCell(r.s)},
+  {k:'strip', t:'Last 14 candles', sort:false, cell: r => strip(r.s, r.best)}
+];
+const comboCols = side => { const low = side === 'low', dir = low ? 'bull' : 'bear'; return [
+  {k:'sym', t:'Symbol', get: r => r.s.symbol, cell: r => symCell(r.s)},
+  {k:'sig', t: low ? 'Low signal' : 'High signal', get: r => r.sig, cell: r => sigPill(r.sig)},
+  {k:'level', t: low ? 'Low level' : 'High level', num:true, get: r => r.level, cell: r => '$' + money(r.level) + '<br><span class="muted small">' + (r.since != null && r.since >= 0 ? 'set ' + agoText(r.since) : '–') + '</span>'},
+  {k:'pat', t:'Pattern', get: r => r.best.name, cell: r => patCell(r.best, r.n - 1)},
+  {k:'status', t:'Status', get: r => r.status, cell: r => r.status === 'confirmed' ? '<span class="pill ' + dir + '">Confirmed</span>' + (r.confTime ? '<br><span class="muted small" title="The candle that closed beyond the pattern and confirmed it">' + esc(fmtTime(r.confTime)) + ', ' + agoText(r.confSince) + '</span><br><span class="small" title="Closing price of the confirming candle">at $' + money(r.confPrice) + '</span>' : '') : '<span class="pill neutral" title="Pattern formed, no later candle has closed beyond it yet">Pending</span>'},
+  {k:'stop', t:'Stop ref', num:true, get: r => r.stop, cell: r => '$' + money(r.stop)},
+  {k:'dist', t:'From level', num:true, get: r => r.dist, cell: r => r.dist.toFixed(2) + ' ATR<br><span class="muted small">' + (r.dist < 0.05 ? 'right at the ' : (r.above ? 'beyond the ' : 'inside the ')) + (low ? 'low' : 'high') + '</span>'},
+  {k:'rank', t:'SMC rank', num:true, get: r => r.rank ?? -1, cell: r => '<b style="color:var(--' + (low ? 'bull' : 'bear') + ')">' + (r.rank != null ? Number(r.rank).toFixed(1) : '–') + '</b>'},
+  {k:'score', t:'Pattern score', get: r => r.score, cell: r => confCell(r.score, dir)},
+  {k:'strip', t:'Last 14 candles', sort:false, cell: r => strip(r.s, r.best)}
+]; };
+const TABLE_DEFS = {
+  smcHigh: {title:'High signals (downward)', cls:'bear', sub:'', cols: () => smcCols('high'), rows: f => smcRows('high', f)},
+  smcLow:  {title:'Low signals (upward)', cls:'bull', sub:'', cols: () => smcCols('low'), rows: f => smcRows('low', f)},
+  patBull: {title:'Bullish pattern signals', cls:'bull', sub:'', tip: PAT_TIP, cols: () => patCols('bull'), rows: f => patRows('bull', f)},
+  comboLow: {title:'SMC + Pattern · Bull (upward)', cls:'bull', tie:(a, b) => b.score - a.score, sub:'', tip:"Strong/Weak Low + bullish reversal pattern (3 stars or more, Turtle Soup, Undercut & Rally) at the low, within 1 ATR, after a real decline into it, no new low since, price not more than 2 ATR away. Confirmed only: a later candle has closed beyond the pattern. Ranked by bullish SMC rank, ties by pattern score.", cols: () => comboCols('low'), rows: f => comboRows('low', f)},
+  comboHigh: {title:'SMC + Pattern · Bear (downward)', cls:'bear', tie:(a, b) => b.score - a.score, sub:'', tip:"Strong/Weak High + bearish reversal pattern (3 stars or more, Turtle Soup) at the high, within 1 ATR, after a real rise into it, no new high since, price not more than 2 ATR away. Confirmed only: a later candle has closed beyond the pattern. Ranked by bearish SMC rank, ties by pattern score.", cols: () => comboCols('high'), rows: f => comboRows('high', f)},
+  patBear: {title:'Bearish pattern signals', cls:'bear', sub:'', tip: PAT_TIP, cols: () => patCols('bear'), rows: f => patRows('bear', f)}
+};
+function tableShell(id, d, top){
+  return '<div class="tcard"><div class="head"><h3 class="' + d.cls + '"' + (d.tip ? ' title="' + esc(d.tip) + '"' : '') + '>' + (top ? 'Top 20 · ' : '') + d.title + '</h3><span class="cnt" id="' + id + '-cnt"></span>' + (d.sub ? '<p>' + d.sub + '</p>' : '') + '</div>' +
+    '<div class="scroll' + (/combo/.test(id) ? '' : ' tall') + '"><table><thead><tr id="' + id + '-head"></tr></thead><tbody id="' + id + '-body"></tbody></table></div>' +
+    (top ? '' : '<div class="pager"><span class="muted small" id="' + id + '-info"></span><div class="btns"><button class="btn" data-pg="-1" data-t="' + id + '" type="button">Previous</button><button class="btn" data-pg="1" data-t="' + id + '" type="button">Next</button></div></div>') + '</div>';
+}
+function renderTable(prefix, id, top){
+  const d = TABLE_DEFS[id], cols = d.cols(), st = state.t[id], ids = prefix + id;
+  let rows = d.rows(!top);
+  const total = rows.length;
+  const sk = top ? (/^(smc|combo)/.test(id) ? 'rank' : 'score') : st.key, sd = top ? -1 : st.dir, col = cols.find(c => c.k === sk) || cols[0];
+  rows.sort((a, b) => { const va = col.get(a), vb = col.get(b); return (va < vb ? -1 : va > vb ? 1 : 0) * sd || (d.tie ? d.tie(a, b) : 0) || a.s.symbol.localeCompare(b.s.symbol); });
+  const pages = Math.max(1, Math.ceil(rows.length / PER)); if (!top && st.page > pages) st.page = pages;
+  const start = top ? 0 : (st.page - 1) * PER, slice = top ? rows.slice(0, META.top_board_size || 20) : rows.slice(start, start + PER);
+  $('#' + ids + '-head').innerHTML = '<th>#</th>' + cols.map(c => {
+    if (top || c.sort === false) return '<th class="' + (c.num ? 'num' : '') + '">' + c.t + '</th>';
+    const on = st.key === c.k;
+    return '<th class="' + (c.num ? 'num' : '') + '" aria-sort="' + (on ? (st.dir > 0 ? 'ascending' : 'descending') : 'none') + '"><button type="button" data-tsort="' + c.k + '" data-t="' + ids + '">' + c.t + ' <span class="arrow">' + (on ? (st.dir > 0 ? '▲' : '▼') : '▲') + '</span></button></th>';
+  }).join('');
+  $('#' + ids + '-body').innerHTML = slice.length ? slice.map((r, i) => '<tr class="row" data-sym="' + esc(r.s.symbol) + '"><td class="idx">' + (start + i + 1) + '</td>' +
+    cols.map(c => '<td class="' + (c.num ? 'num' : '') + '">' + c.cell(r) + '</td>').join('') + '</tr>').join('')
+    : '<tr><td colspan="' + (cols.length + 1) + '" class="muted" style="padding:22px;text-align:center">' + (top ? 'None right now.' : 'No symbols match the current filters.') + '</td></tr>';
+  $('#' + ids + '-cnt').textContent = top ? 'showing ' + slice.length + ' of ' + total : total + ' symbols';
+  if (!top){
+    $('#' + ids + '-info').textContent = rows.length ? 'Showing ' + (start + 1) + ' to ' + (start + slice.length) + ' of ' + rows.length : '0 symbols';
+    document.querySelector('[data-t="' + ids + '"][data-pg="-1"]').disabled = st.page <= 1;
+    document.querySelector('[data-t="' + ids + '"][data-pg="1"]').disabled = st.page >= pages;
+  }
+}
+
+/* ---------- All symbols table ---------- */
+function view(s){
+  const f = state.f;
+  let sigs = signalsIn(s, f.win);
+  if (f.group) sigs = sigs.filter(g => g.group === f.group);
+  if (f.pat) sigs = sigs.filter(g => g.name === f.pat);
+  const best = bestOf(sigs);
+  return {s, sigs, best, conf: best ? best.score : 0};
+}
+const ALLCOLS = [
+  {k:'star', t:'', sort:false}, {k:'sym', t:'Symbol'}, {k:'price', t:'Price', num:true}, {k:'smc', t:'SMC trend'},
+  {k:'high', t:'High signal'}, {k:'low', t:'Low signal'}, {k:'pat', t:'Latest pattern'}, {k:'strip', t:'Last 14 candles', sort:false},
+  {k:'sq', t:'Squeeze'}, {k:'rv', t:'Relative volume', num:true}, {k:'conf', t:'Confluence'}, {k:'status', t:'Status'}
+];
+const allSort = {
+  sym: x => x.s.symbol, price: x => x.s.price, smc: x => (x.s.smc || {}).trend || '', high: x => (x.s.smc || {}).bearish_rank_score ?? -1,
+  low: x => (x.s.smc || {}).bullish_rank_score ?? -1, pat: x => x.best ? x.best.since : 99,
+  sq: x => ({fired:2, on:1, off:0})[(x.s.context || {}).squeeze_state] ?? 0, rv: x => (x.s.context || {}).rel_volume ?? -1,
+  conf: x => x.conf, status: x => x.s.scanner_status
+};
+function head(id){
+  $(id).innerHTML = ALLCOLS.map(c => {
+    const on = state.all.key === c.k, aria = on ? (state.all.dir > 0 ? 'ascending' : 'descending') : 'none';
+    if (c.sort === false) return '<th>' + c.t + '</th>';
+    return '<th class="' + (c.num ? 'num' : '') + '" aria-sort="' + aria + '"><button type="button" data-sort="' + c.k + '">' + c.t + ' <span class="arrow">' + (on ? (state.all.dir > 0 ? '▲' : '▼') : '▲') + '</span></button></th>';
+  }).join('');
+}
+function allRowsHtml(list){
+  return list.map(x => {
+    const r = x.s, m = r.smc || {}, starred = watch.includes(r.symbol);
+    return '<tr class="row" data-sym="' + esc(r.symbol) + '">' +
+      '<td><button class="star" type="button" aria-pressed="' + starred + '" aria-label="' + (starred ? 'Remove ' : 'Add ') + esc(r.symbol) + (starred ? ' from' : ' to') + ' watchlist" data-star="' + esc(r.symbol) + '">' + (starred ? '★' : '☆') + '</button></td>' +
+      '<td class="symcell">' + symCell(r) + '</td><td class="num">' + priceCell(r) + '</td><td>' + trendCell(r) + '</td>' +
+      '<td>' + levelCell(m, 'top') + '</td><td>' + levelCell(m, 'bottom') + '</td>' +
+      '<td>' + patCell(x.best, x.sigs.length - 1) + '</td><td>' + strip(r, x.best) + '</td><td>' + sqCell(r.context) + '</td>' +
+      '<td class="num">' + rvCell(r.context) + '</td><td>' + confCell(x.conf, x.best && x.best.dir) + '</td><td>' + statusCell(r) + '</td></tr>';
+  }).join('');
+}
+function sortAll(list){
+  const g = allSort[state.all.key], dir = state.all.dir;
+  return list.sort((a, b) => { const va = g(a), vb = g(b); return (va < vb ? -1 : va > vb ? 1 : 0) * dir || a.s.symbol.localeCompare(b.s.symbol); });
+}
+function allFiltered(){
+  const f = state.f, narrowed = !!(f.group || f.pat);
+  return LIVE.filter(symbolOk).map(view).filter(x => ((f.only || narrowed) ? x.sigs.length > 0 : true) && x.conf >= f.conf);
+}
+function renderAllTab(){
+  head('#thead');
+  const list = sortAll(allFiltered()), a = state.all;
+  const pages = Math.max(1, Math.ceil(list.length / a.per)); if (a.page > pages) a.page = pages;
+  const start = (a.page - 1) * a.per, slice = list.slice(start, start + a.per);
+  $('#tbody').innerHTML = allRowsHtml(slice);
+  $('#emptyAll').classList.toggle('hidden', list.length > 0); $('#tbl').classList.toggle('hidden', list.length === 0);
+  if (!list.length) $('#emptyAll').innerHTML = LIVE.length ? '<b>No symbols match these filters</b>Reset the filters or lower the minimum confluence.' : '<b>No scan results yet</b>Run the “Scan market” workflow once on GitHub (Actions tab), then reload this page.';
+  $('#pagerInfo').textContent = list.length ? 'Showing ' + (start + 1) + ' to ' + (start + slice.length) + ' of ' + list.length + ' symbols' : '0 symbols';
+  $('#prev').disabled = a.page <= 1; $('#next').disabled = a.page >= pages;
+}
+
+/* ---------- feed + watchlist ---------- */
+function renderFeed(){
+  const f = state.f, items = [];
+  LIVE.filter(symbolOk).forEach(s => signalsIn(s, f.win).forEach(g => { if ((!f.group || g.group === f.group) && (!f.pat || g.name === f.pat) && g.score >= f.conf) items.push({s, g}); }));
+  items.sort((a, b) => a.g.since - b.g.since || b.g.score - a.g.score);
+  $('#feedCount').textContent = ' ' + items.length;
+  const shown = items.slice(0, 400);
+  $('#feed').innerHTML = shown.map(({s, g}) => '<li data-open="' + esc(s.symbol) + '"><b>' + esc(s.symbol) + '</b><span class="pill ' + g.dir + '">' + dirLabel(g.dir) + '</span><span>' + esc(g.name) + ' <span class="muted small">with SMC ' + esc(((s.smc || {}).trend || 'unknown').toLowerCase()) + '</span></span><span class="when">' + esc(fmtTime(g.time)) + ', ' + agoText(g.since) + ' · score ' + g.score + '</span></li>').join('')
+    + (items.length > shown.length ? '<li class="muted small" style="cursor:default">Showing the newest ' + shown.length + ' of ' + items.length + '. Narrow the filters to see the rest.</li>' : '');
+  $('#emptyFeed').classList.toggle('hidden', items.length > 0);
+}
+function renderWatch(){
+  $('#watchCount').textContent = watch.length ? ' ' + watch.length : '';
+  head('#theadW');
+  const have = LIVE.filter(s => watch.includes(s.symbol));
+  $('#tbodyW').innerHTML = allRowsHtml(sortAll(have.map(view)));
+  $('#emptyWatch').classList.toggle('hidden', have.length > 0); $('#tblWatch').classList.toggle('hidden', have.length === 0);
+}
+function renderFull(){ ['comboLow','comboHigh','smcHigh','smcLow','patBull','patBear'].forEach(id => renderTable('f_', id, false)); renderAllTab(); renderFeed(); renderWatch(); }
+
+/* ---------- header, stats, issues ---------- */
+function renderHeader(){
+  $('#refreshIST').textContent = META.generated_ist || 'no scan yet';
+  const rt = META.run_type === 'mid-session' ? 'mid-session run (current candle excluded)' : META.run_type === 'after-close' ? 'after-close run' : 'run';
+  $('#refreshSub').textContent = (META.generated_et ? META.generated_et + ' · ' : '') + rt + (META.latest_candle ? ' · latest candle ' + fmtTime(META.latest_candle) : '');
+  if (META.generated_at){
+    const hrs = (Date.now() - Date.parse(META.generated_at)) / 36e5;
+    if (hrs > 30) { const b = $('#staleBanner'); b.textContent = 'This data is ' + Math.round(hrs) + ' hours old. The scheduled run may have stopped. Check the Actions tab on GitHub.'; b.classList.remove('hidden'); }
+  }
+}
+function renderStats(){
+  const fresh = d => LIVE.filter(s => signalsIn(s, 3).some(g => g.dir === d)).length;
+  const trend = t => LIVE.filter(s => (s.smc || {}).trend === t).length;
+  const c = META.counts || {}, sq = LIVE.filter(s => ['on', 'fired'].includes((s.context || {}).squeeze_state)).length;
+  $('#stats').innerHTML =
+    '<div class="stat"><b>' + LIVE.length + '</b><span>symbols scanned, of ' + (META.total_symbols ?? DATA.stocks.length) + ' in your list</span></div>' +
+    '<div class="stat bull"><b>' + trend('BULLISH') + '</b><span>SMC bullish trend</span></div>' +
+    '<div class="stat bear"><b>' + trend('BEARISH') + '</b><span>SMC bearish trend</span></div>' +
+    '<div class="stat bull"><b>' + fresh('bull') + '</b><span>bullish pattern, last 3 candles</span></div>' +
+    '<div class="stat bear"><b>' + fresh('bear') + '</b><span>bearish pattern, last 3 candles</span></div>' +
+    '<div class="stat"><b>' + sq + '</b><span>in a squeeze, or just fired</span></div>' +
+    '<div class="stat warn"><b>' + (c.STALE || 0) + '</b><span>stale (last good result)</span></div>' +
+    '<div class="stat warn"><b>' + (DATA.stocks.length - LIVE.length) + '</b><span>not scanned (Data issues)</span></div>';
+}
+function renderIssues(){
+  const bad = DATA.stocks.filter(s => !isLive(s) || s.scanner_status === 'STALE'), probs = META.csv_problems || [];
+  $('#issues').hidden = !(bad.length || probs.length);
+  $('#issuesSummary').textContent = 'Data issues (' + bad.length + ' symbols' + (probs.length ? ', ' + probs.length + ' CSV problems' : '') + ')';
+  const label = {INACTIVE:'Switched off', NO_DATA:'No Yahoo data', ERROR:'Download error', INSUFFICIENT_DATA:'Too few candles', PENDING_SCAN:'Waiting for first scan', STALE:'Stale'};
+  $('#issuesBody').innerHTML = bad.map(s => '<tr><td>' + esc(s.symbol) + '</td><td>' + esc(s.yahoo_symbol) + '</td><td>' + esc(label[s.scanner_status] || s.scanner_status) + '</td><td class="muted small">' + esc(s.scan_error || s.notes || '') + '</td></tr>').join('');
+  $('#csvProblems').textContent = probs.length ? 'symbols.csv: ' + probs.join(' · ') : '';
+}
+
+/* ---------- events ---------- */
+function setTab(t){
+  state.tab = t;
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  [['smc','#viewSmc'],['pat','#viewPat'],['combo','#viewCombo'],['all','#viewAll'],['feed','#viewFeed'],['watch','#viewWatch']].forEach(([k, id]) => $(id).classList.toggle('hidden', k !== t));
+}
+document.addEventListener('click', e => {
+  const tab = e.target.closest('.tab'); if (tab) { setTab(tab.dataset.tab); return; }
+  const star = e.target.closest('[data-star]');
+  if (star) { const s = star.dataset.star; watch = watch.includes(s) ? watch.filter(x => x !== s) : watch.concat(s); setWatch(watch); renderFull(); return; }
+  const ts = e.target.closest('[data-tsort]');
+  if (ts) { const id = ts.dataset.t.replace(/^f_/, ''), k = ts.dataset.tsort, st = state.t[id]; if (st.key === k) st.dir = -st.dir; else { st.key = k; st.dir = ['sym','sig','trend','pat','status'].includes(k) ? 1 : -1; } st.page = 1; renderTable('f_', id, false); return; }
+  const pg = e.target.closest('[data-pg]');
+  if (pg) { const id = pg.dataset.t.replace(/^f_/, ''); state.t[id].page += Number(pg.dataset.pg); renderTable('f_', id, false); return; }
+  const sb = e.target.closest('[data-sort]');
+  if (sb) { const k = sb.dataset.sort, a = state.all; if (a.key === k) a.dir = -a.dir; else { a.key = k; a.dir = ['sym','status','smc','pat'].includes(k) ? 1 : -1; } a.page = 1; renderAllTab(); renderWatch(); return; }
+  if (e.target.closest('a')) return;                       // real links (symbol, TradingView) work natively
+  const open = e.target.closest('[data-open]') || e.target.closest('tr.row[data-sym]');
+  if (open) location.href = stockUrl(open.dataset.open || open.dataset.sym);
+});
+const FILTER_IDS = {q:'#fSearch', type:'#fType', smc:'#fSmc', strength:'#fStrength', event:'#fEvent', age:'#fAge', group:'#fGroup', pat:'#fPat', win:'#fWin', conf:'#fConf', status:'#fStatus', confirm:'#fConfirm'};
+function resetPages(){ Object.values(state.t).forEach(t => t.page = 1); state.all.page = 1; }
+function bindFilters(){
+  Object.entries(FILTER_IDS).forEach(([key, id]) => $(id).addEventListener('input', e => {
+    state.f[key] = (key === 'win' || key === 'conf') ? Number(e.target.value) : e.target.value;
+    if (key === 'conf') $('#fConfVal').textContent = e.target.value;
+    resetPages(); renderFull();
+  }));
+  $('#fOnly').addEventListener('change', e => { state.f.only = e.target.checked; state.all.page = 1; renderFull(); });
+  $('#fReset').addEventListener('click', () => {
+    state.f = {...DEFAULT_F}; resetPages();
+    Object.entries(FILTER_IDS).forEach(([key, id]) => { $(id).value = key === 'win' ? '10' : key === 'conf' ? '0' : key === 'confirm' ? 'confirmed' : ''; });
+    $('#fConfVal').textContent = '0'; $('#fOnly').checked = false; renderFull();
+  });
+  $('#prev').addEventListener('click', () => { state.all.page--; renderAllTab(); });
+  $('#next').addEventListener('click', () => { state.all.page++; renderAllTab(); });
+}
+function buildFilterOptions(){
+  const wins = META.window_options || [3, 6, 7, 10, 14, 20, 35];
+  $('#fWin').innerHTML = wins.map(w => '<option value="' + w + '"' + (w === 10 ? ' selected' : '') + '>' + w + ' candles' + (w === 7 ? ' (about 1 day)' : w === 35 ? ' (5 days)' : '') + '</option>').join('');
+  const groups = {}, names = {};
+  LIVE.forEach(s => (s.signals || []).forEach(g => { groups[g.group] = 1; (names[g.group] = names[g.group] || {})[g.name] = 1; }));
+  const order = ['1-candle','2-candle','3-candle','extended','squeeze','volume','trend','structure','range'];
+  const gl = order.filter(g => groups[g]).concat(Object.keys(groups).filter(g => !order.includes(g)));
+  $('#fGroup').innerHTML = '<option value="">All groups</option>' + gl.map(g => '<option>' + esc(g) + '</option>').join('');
+  $('#fPat').innerHTML = '<option value="">All signals</option>' + gl.map(g => '<optgroup label="' + esc(g) + '">' + Object.keys(names[g]).sort().map(n => '<option>' + esc(n) + '</option>').join('') + '</optgroup>').join('');
+}
+
+async function init(){
+  bindTheme($('#themeBtn'));
+  $('#fullCombo').innerHTML = tableShell('f_comboHigh', TABLE_DEFS.comboHigh, false) + tableShell('f_comboLow', TABLE_DEFS.comboLow, false);
+  $('#fullSmc').innerHTML = tableShell('f_smcHigh', TABLE_DEFS.smcHigh, false) + tableShell('f_smcLow', TABLE_DEFS.smcLow, false);
+  $('#fullPat').innerHTML = tableShell('f_patBull', TABLE_DEFS.patBull, false) + tableShell('f_patBear', TABLE_DEFS.patBear, false);
+  bindFilters();
+  try { DATA = await loadData(); }
+  catch (e) {
+    const b = $('#errBanner'); b.textContent = 'Could not load shared-data/stocks.json (' + e.message + '). If you opened this file straight from your computer, serve the folder instead, for example: python -m http.server';
+    b.classList.remove('hidden'); $('#refreshIST').textContent = 'unavailable'; return;
+  }
+  META = DATA.meta || {}; LIVE = DATA.stocks.filter(isLive);
+  buildFilterOptions(); renderHeader(); renderStats(); renderIssues();
+  renderFull();
+}
+init();
+</script>
+</body>
+</html>

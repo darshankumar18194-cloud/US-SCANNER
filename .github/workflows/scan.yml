@@ -1,0 +1,118 @@
+name: Scan market
+
+on:
+  schedule:
+    # GitHub cron is always UTC. Runs every hour, 24 times a day, every day (weekends and holidays too).
+    # US one-hour candles close at :30 UTC, so minute 35 starts each run about 5 minutes after a candle closes.
+    # (35 past the hour UTC = 5 past the hour IST, e.g. 13:35 UTC = 19:05 IST.) Not minute 0: GitHub is busiest there.
+    - cron: "35 * * * *"
+  workflow_dispatch:
+    inputs:
+      symbols:
+        description: "Optional: symbols to ADD to symbols.csv before scanning, e.g.  NVDA, PLTR, SPY"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+# One scan at a time. A second run waits instead of fighting over stocks.json.
+concurrency:
+  group: scan-market
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # full history is needed so the trim step can count commits
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Add requested symbols (manual runs only)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.symbols != ''
+        continue-on-error: true            # a mistyped ticker must not cancel the whole scan
+        env:
+          SYMBOLS: ${{ github.event.inputs.symbols }}
+        run: python add_stock.py --bulk "$SYMBOLS"
+
+      - name: Scan
+        run: python scan.py
+
+      - name: Validate output (nothing broken is ever published)
+        run: python validate_data.py
+
+      - name: Commit results
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shared-data/stocks.json shared-data/symbols.csv
+          if git diff --cached --quiet; then
+            echo "Nothing changed - nothing to commit."
+            exit 0
+          fi
+          git commit -m "scan: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            echo "push attempt $attempt failed, retrying..."
+            sleep 5
+          done
+          echo "Could not push after 3 attempts"
+          exit 1
+
+      - name: Keep only the newest 100 commits (rolling history)
+        env:
+          KEEP: "100"
+        run: |
+          git fetch origin "${GITHUB_REF_NAME}"
+          git checkout -q -B "${GITHUB_REF_NAME}" "origin/${GITHUB_REF_NAME}"
+          TOTAL=$(git rev-list --count HEAD)
+          echo "commits on branch: $TOTAL (keeping $KEEP)"
+          if [ "$TOTAL" -le "$KEEP" ]; then echo "nothing to trim"; exit 0; fi
+          # The KEEP-th newest commit becomes the new first commit (same files, no parent).
+          OLDEST=$(git rev-list HEAD | sed -n "${KEEP}p")
+          ROOT=$(git commit-tree "${OLDEST}^{tree}" -m "history trimmed - snapshot of: $(git log -1 --format=%s "$OLDEST")")
+          git rebase --onto "$ROOT" "$OLDEST" HEAD
+          # --force-with-lease refuses to overwrite if someone pushed in the meantime
+          git push --force-with-lease origin "HEAD:${GITHUB_REF_NAME}"
+
+  # Publishes the website from the newest commit. Pushes made by the bot do not start other workflows, so the scan
+  # workflow publishes the site itself (needs Settings -> Pages -> Source = "GitHub Actions").
+  deploy:
+    needs: scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}      # the branch tip as it is NOW, including the commit the scan just pushed
+      - name: Collect the website files
+        run: |
+          mkdir _site
+          cp -r index.html main-dashboard stock assets shared-data docs .nojekyll _site/ 2>/dev/null || true
+          ls -R _site | head -30
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
