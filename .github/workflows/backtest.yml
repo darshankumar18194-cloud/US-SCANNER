@@ -1,0 +1,110 @@
+name: Backtest
+
+# Run it by hand (Actions -> Backtest -> Run workflow). It replays the scanner over the ~2 years of hourly history that Yahoo
+# gives, on real prices AND on shuffled copies of them, and writes shared-data/backtest.json for the dashboard.
+# Eight jobs run in parallel, each on one eighth of the symbols, then one job merges them.
+on:
+  workflow_dispatch:
+    inputs:
+      step:
+        description: "Replay every N candles (4 = careful, 7 = faster and slightly rougher)"
+        required: false
+        default: "4"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backtest
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false                    # one slow or failed shard must not throw away the others
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Replay this shard
+        run: python backtest.py --shard ${{ matrix.shard }} --shards 8 --step ${{ github.event.inputs.step || '4' }} --out shard_${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backtest-shard-${{ matrix.shard }}
+          path: shard_${{ matrix.shard }}.json
+          retention-days: 7
+
+  merge:
+    needs: replay
+    if: ${{ !cancelled() }}                # merge whatever shards finished
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: backtest-shard-*
+          merge-multiple: true
+          path: shards
+      - name: Combine the shards into shared-data/backtest.json
+        run: python backtest.py --merge "shards/*.json" --out shared-data/backtest.json
+      - name: Commit the summary
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shared-data/backtest.json
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          git commit -m "backtest: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            echo "push attempt $attempt failed, retrying..."
+            sleep 5
+          done
+          echo "Could not push after 3 attempts"
+          exit 1
+
+  deploy:
+    needs: merge
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Collect the website files
+        run: |
+          mkdir _site
+          cp -r index.html main-dashboard stock assets shared-data docs .nojekyll _site/ 2>/dev/null || true
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
